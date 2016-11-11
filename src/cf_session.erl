@@ -4,27 +4,20 @@
 -export( [start_link/3, reply/2] ).
 -export( [code_change/4, init/1, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
+-export( [idle/2, busy/2, saturated/2] ).
 
 %%==========================================================
 %% Record definitions
 %%==========================================================
 
--record( state_data, {query, theta} ).
-
-
-%% =========================================================
-%% Callback function declarations
-%% =========================================================
-
--callback submit( Ref::pid(), Msg::tuple() ) -> ok.
-
+-record( state_data, {usr, exec_env, query, theta} ).
 
 %%==========================================================
 %% API functions
 %%==========================================================
 
-start_link( Query, Rho, Gamma ) ->
-  gen_fsm:start_link( ?MODULE, {Query, Rho, Gamma}, [] ).
+start_link( Usr, ExecEnv, {Query, Rho, Gamma} ) ->
+  gen_fsm:start_link( ?MODULE, {Usr, ExecEnv, {Query, Rho, Gamma}}, [] ).
 
 reply( Session, Reply ) ->
   gen_fsm:send_event( Session, {reply, Reply} ).
@@ -46,8 +39,11 @@ handle_sync_event( _Event, _From, StateName, StateData ) ->
 terminate( _Reason, _StateName, _StateData ) ->
   ok.
 
+handle_event( _Event, State, StateData ) ->
+  {next_state, State, StateData}.
 
-init( {Query, Rho, Gamma} ) ->
+
+init( {Usr, ExecEnv, {Query, Rho, Gamma}} ) ->
 
   % compose submit function mu
   Parent = self(),
@@ -57,51 +53,66 @@ init( {Query, Rho, Gamma} ) ->
 
   % construct initial context
   Theta = {Rho, Mu, Gamma, #{}},
+  _Pid = fire( Query, Theta ),
 
-  {ok, busy, #state_data{ query=Query, theta=Theta }}.
+  {ok, busy, #state_data{ usr      = Usr,
+                          exec_env = ExecEnv,
+                          query    = Query,
+                          theta    = Theta }}.
 
 
-handle_event( {eval, {ok, Y}}, busy, StateData ) ->
-  {next_state, idle, StateData#state_data{ query=Y }};
 
-handle_event( {eval, {ok, Y}}, saturated,
-              StateData=#state_data{ theta=Theta } ) ->
-  fire( Y, Theta ),
-  {next_state, busy, StateData#state_data{ query=Y } };
-
-handle_event( {eval, {error, Reason}}, _, StateData ) ->
-  % TODO
-  {stop, nyi, StateData};
-
-handle_event( {reply, {ok, ReplyMap}}, idle,
-              StateData=#state_data{ query=Query, theta=Theta } ) ->
+idle( {reply, {ok, ReplyMap}},
+      StateData=#state_data{ query=Query, theta=Theta } ) ->
   {Rho, Mu, Gamma, Omega} = Theta,
   Theta1 = {Rho, Mu, Gamma, maps:merge( ReplyMap, Omega )},
   fire( Query, Theta1 ),
-  {next_state, busy, StateData#state_data{ theta=Theta1 }};
+  {next_state, busy, StateData#state_data{ theta=Theta1 }}.
 
-handle_event( {reply, {ok, ReplyMap}}, busy,
-              StateData=#state_data{ theta=Theta } ) ->
+
+
+busy( {reply, {ok, ReplyMap}}, StateData=#state_data{ theta=Theta } ) ->
   {Rho, Mu, Gamma, Omega} = Theta,
   Theta1 = {Rho, Mu, Gamma, maps:merge( ReplyMap, Omega )},
   {next_state, saturated, StateData#state_data{ theta=Theta1 }};
 
-handle_event( {reply, {ok, ReplyMap}}, saturated,
-              StateData=#state_data{ theta=Theta } ) ->
+busy( {eval, {ok, Y}}, StateData=#state_data{ usr=Usr } ) ->
+  case cf_sem:pnormal( Y ) of
+    true ->
+      Usr:halt( {ok, Y} ),
+      {stop, normal, StateData};
+    false ->
+      {next_state, idle, StateData#state_data{ query=Y }}
+  end;
+
+busy( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
+  Usr:halt( {error, Reason} ),
+  {stop, normal, StateData};
+
+busy( {submit, App}, StateData=#state_data{ exec_env=ExecEnv } ) ->
+  ExecEnv:submit( App ),
+  {next_state, busy, StateData}.
+
+saturated( {reply, {ok, ReplyMap}},
+           StateData=#state_data{ theta=Theta } ) ->
   {Rho, Mu, Gamma, Omega} = Theta,
   Theta1 = {Rho, Mu, Gamma, maps:merge( ReplyMap, Omega )},
   {next_state, saturated, StateData#state_data{ theta=Theta1 }};
 
-handle_event( {reply, {error, Reason}}, _, StateData ) ->
-  % TODO
-  {stop, nyi, StateData};
+saturated( {eval, {ok, Y}}, StateData=#state_data{ theta=Theta } ) ->
+  fire( Y, Theta ),
+  {next_state, busy, StateData#state_data{ query=Y } };
 
-handle_event( {submit, App}, _, StateData=#state_data{} ) ->
-  % TODO
-  {stop, nyi, StateData};
+saturated( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
+  Usr:halt( {error, Reason} ),
+  {stop, normal, StateData};
 
-handle_event( _Event, State, StateData ) ->
-  {next_state, State, StateData}.
+saturated( {submit, App}, StateData=#state_data{ exec_env=ExecEnv } ) ->
+  ExecEnv:submit( App ),
+  {next_state, saturated, StateData}.
+
+
+
 
 
 

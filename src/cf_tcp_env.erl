@@ -1,6 +1,7 @@
--module( cf_tcp_session ).
+-module( cf_tcp_env ).
 -behavior( gen_fsm ).
--behavior( cf_session ).
+-behavior( cf_usr ).
+-behavior( cf_exec_env ).
 
 -export( [start_link/1] ).
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
@@ -55,7 +56,8 @@ handle_info( {tcp, Socket, S}, preop,
     {error, Reason} ->
       gen_tcp:send( Socket, encode( error, Reason ) );
     {ok, {Query, Rho, Gamma}} ->
-      case cf_session:start_link( Query, Rho, Gamma ) of
+      M = {?MODULE, self()},
+      case cf_session:start_link( M, M, {Query, Rho, Gamma} ) of
         {error, Reason} -> error( Reason );
         {ok, Session}   ->
           {next_state, op, StateData#state_data{ session=Session }}
@@ -70,13 +72,14 @@ handle_info( _Info, State, StateData ) ->
 
 
 %%==========================================================
-%% Cuneiform session callback functions
+%% Execution environment callback functions
 %%==========================================================
 
-submit( Ref, App ) ->
+submit( App, {?MODULE, Ref} ) ->
   gen_fsm:send_event( Ref, {submit, App} ).
 
-
+halt( Result, {?MODULE, Ref} ) ->
+  gen_fsm:send_event( Ref, {halt, Result} ).
 
 
 
