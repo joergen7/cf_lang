@@ -1,6 +1,6 @@
 -module(cf_parse).
 -export([parse/1, parse_and_scan/1, format_error/1]).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 115).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 115).
 
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
@@ -384,7 +384,7 @@ yecctoken2string(Other) ->
 
 
 
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.erl", 387).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.erl", 387).
 
 -dialyzer({nowarn_function, yeccpars2/7}).
 yeccpars2(0=S, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1228,7 +1228,7 @@ yeccgoto_stat(1, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_1(1, Cat, Ss, Stack, T, Ts, Tzr).
 
 -compile({inline,yeccpars2_3_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 43).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 43).
 yeccpars2_3_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1236,7 +1236,7 @@ yeccpars2_3_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_5_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 71).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 71).
 yeccpars2_5_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1244,7 +1244,7 @@ yeccpars2_5_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_6_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 45).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 45).
 yeccpars2_6_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1252,7 +1252,7 @@ yeccpars2_6_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_9_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 44).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 44).
 yeccpars2_9_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1260,7 +1260,7 @@ yeccpars2_9_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_13_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 67).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 67).
 yeccpars2_13_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1268,7 +1268,7 @@ yeccpars2_13_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_14_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 65).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 65).
 yeccpars2_14_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1276,7 +1276,7 @@ yeccpars2_14_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_15_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 62).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 62).
 yeccpars2_15_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1284,7 +1284,7 @@ yeccpars2_15_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_16_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 66).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 66).
 yeccpars2_16_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1292,7 +1292,7 @@ yeccpars2_16_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_21_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 77).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 77).
 yeccpars2_21_(__Stack0) ->
  [__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1300,7 +1300,7 @@ yeccpars2_21_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_24_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 80).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 80).
 yeccpars2_24_(__Stack0) ->
  [__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1308,7 +1308,7 @@ yeccpars2_24_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_26_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 83).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 83).
 yeccpars2_26_(__Stack0) ->
  [__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1316,7 +1316,7 @@ yeccpars2_26_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_27_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 78).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 78).
 yeccpars2_27_(__Stack0) ->
  [__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1324,7 +1324,7 @@ yeccpars2_27_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_32_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 97).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 97).
 yeccpars2_32_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1332,7 +1332,7 @@ yeccpars2_32_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_33_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 94).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 94).
 yeccpars2_33_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1340,7 +1340,7 @@ yeccpars2_33_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_34_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 100).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 100).
 yeccpars2_34_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1348,7 +1348,7 @@ yeccpars2_34_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_37_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 95).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 95).
 yeccpars2_37_(__Stack0) ->
  [__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1356,7 +1356,7 @@ yeccpars2_37_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_41_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 101).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 101).
 yeccpars2_41_(__Stack0) ->
  [__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1364,7 +1364,7 @@ yeccpars2_41_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_42_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 102).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 102).
 yeccpars2_42_(__Stack0) ->
  [__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1372,7 +1372,7 @@ yeccpars2_42_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_43_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 98).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 98).
 yeccpars2_43_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1380,7 +1380,7 @@ yeccpars2_43_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_47_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 91).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 91).
 yeccpars2_47_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1388,7 +1388,7 @@ yeccpars2_47_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_49_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 85).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 85).
 yeccpars2_49_(__Stack0) ->
  [__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1396,7 +1396,7 @@ yeccpars2_49_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_51_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 104).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 104).
 yeccpars2_51_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1404,7 +1404,7 @@ yeccpars2_51_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_52_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 105).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 105).
 yeccpars2_52_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1412,7 +1412,7 @@ yeccpars2_52_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_53_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 89).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 89).
 yeccpars2_53_(__Stack0) ->
  [__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1420,7 +1420,7 @@ yeccpars2_53_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_54_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 92).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 92).
 yeccpars2_54_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1428,7 +1428,7 @@ yeccpars2_54_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_55_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 86).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 86).
 yeccpars2_55_(__Stack0) ->
  [__5,__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1436,7 +1436,7 @@ yeccpars2_55_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_61_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 52).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 52).
 yeccpars2_61_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1444,7 +1444,7 @@ yeccpars2_61_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_62_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 54).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 54).
 yeccpars2_62_(__Stack0) ->
  [__6,__5,__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1452,7 +1452,7 @@ yeccpars2_62_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_65_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 49).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 49).
 yeccpars2_65_(__Stack0) ->
  [__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1460,7 +1460,7 @@ yeccpars2_65_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_67_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 57).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 57).
 yeccpars2_67_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1468,7 +1468,7 @@ yeccpars2_67_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_68_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 58).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 58).
 yeccpars2_68_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1476,7 +1476,7 @@ yeccpars2_68_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_69_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 59).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 59).
 yeccpars2_69_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1484,7 +1484,7 @@ yeccpars2_69_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_70_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 60).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 60).
 yeccpars2_70_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
@@ -1492,7 +1492,7 @@ yeccpars2_70_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_71_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 55).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 55).
 yeccpars2_71_(__Stack0) ->
  [__6,__5,__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1500,7 +1500,7 @@ yeccpars2_71_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_77_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 75).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 75).
 yeccpars2_77_(__Stack0) ->
  [__7,__6,__5,__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1508,7 +1508,7 @@ yeccpars2_77_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_78_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 47).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 47).
 yeccpars2_78_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1516,7 +1516,7 @@ yeccpars2_78_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_79_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 72).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 72).
 yeccpars2_79_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1524,7 +1524,7 @@ yeccpars2_79_(__Stack0) ->
   end | __Stack].
 
 -compile({inline,yeccpars2_80_/1}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 41).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 41).
 yeccpars2_80_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
@@ -1532,4 +1532,4 @@ yeccpars2_80_(__Stack0) ->
   end | __Stack].
 
 
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 324).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 324).

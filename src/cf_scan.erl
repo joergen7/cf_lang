@@ -12,7 +12,7 @@
 -export([format_error/1]).
 
 %% User code. This is placed here to allow extra attributes.
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 119).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 119).
 
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
@@ -426,7 +426,7 @@ yysuf(List, N) -> lists:nthtail(N, List).
 %% return signal either an unrecognised character or end of current
 %% input.
 
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.erl", 428).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.erl", 428).
 yystate() -> 72.
 
 yystate(75, [116|Ics], Line, Tlen, _, _) ->
@@ -1576,162 +1576,162 @@ yyaction(31, _, _, _) ->
 yyaction(_, _, _, _) -> error.
 
 -compile({inline,yyaction_0/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 73).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 73).
 yyaction_0(TokenChars, TokenLine) ->
      { token, { bash, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_1/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 74).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 74).
 yyaction_1(TokenChars, TokenLine) ->
      { token, { perl, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_2/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 75).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 75).
 yyaction_2(TokenChars, TokenLine) ->
      { token, { python, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_3/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 76).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 76).
 yyaction_3(TokenChars, TokenLine) ->
      { token, { r, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_4/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 78).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 78).
 yyaction_4(TokenChars, TokenLine) ->
      { token, { intlit, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_5/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 79).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 79).
 yyaction_5(TokenChars, TokenLine) ->
      { token, { strlit, TokenLine, trim_strlit (TokenChars) } } .
 
 -compile({inline,yyaction_6/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 80).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 80).
 yyaction_6(TokenChars, TokenLine) ->
      { token, { body, TokenLine, trim_body (TokenChars) } } .
 
 -compile({inline,yyaction_7/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 81).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 81).
 yyaction_7(TokenChars, TokenLine) ->
      { token, { beginif, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_8/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 82).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 82).
 yyaction_8(TokenChars, TokenLine) ->
      { token, { colon, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_9/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 83).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 83).
 yyaction_9(TokenChars, TokenLine) ->
      { token, { comma, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_10/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 84).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 84).
 yyaction_10(TokenChars, TokenLine) ->
      { token, { deftask, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_11/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 85).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 85).
 yyaction_11(TokenChars, TokenLine) ->
      { token, { else, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_12/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 86).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 86).
 yyaction_12(TokenChars, TokenLine) ->
      { token, { endif, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_13/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 87).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 87).
 yyaction_13(TokenChars, TokenLine) ->
      { token, { eq, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_14/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 88).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 88).
 yyaction_14(TokenChars, TokenLine) ->
      { token, { file, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_15/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 89).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 89).
 yyaction_15(TokenChars, TokenLine) ->
      { token, { in, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_16/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 90).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 90).
 yyaction_16(TokenChars, TokenLine) ->
      { token, { lbrace, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_17/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 91).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 91).
 yyaction_17(TokenChars, TokenLine) ->
      { token, { lparen, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_18/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 92).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 92).
 yyaction_18(TokenChars, TokenLine) ->
      { token, { lsquarebr, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_19/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 93).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 93).
 yyaction_19(TokenChars, TokenLine) ->
      { token, { ltag, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_20/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 94).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 94).
 yyaction_20(TokenChars, TokenLine) ->
      { token, { nil, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_21/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 95).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 95).
 yyaction_21(TokenChars, TokenLine) ->
      { token, { rbrace, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_22/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 96).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 96).
 yyaction_22(TokenChars, TokenLine) ->
      { token, { rparen, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_23/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 97).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 97).
 yyaction_23(TokenChars, TokenLine) ->
      { token, { rsquarebr, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_24/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 98).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 98).
 yyaction_24(TokenChars, TokenLine) ->
      { token, { rtag, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_25/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 99).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 99).
 yyaction_25(TokenChars, TokenLine) ->
      { token, { semicolon, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_26/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 100).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 100).
 yyaction_26(TokenChars, TokenLine) ->
      { token, { string, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_27/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 101).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 101).
 yyaction_27(TokenChars, TokenLine) ->
      { token, { then, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_28/2}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 103).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 103).
 yyaction_28(TokenChars, TokenLine) ->
      { token, { id, TokenLine, TokenChars } } .
 
 -compile({inline,yyaction_29/0}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 105).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 105).
 yyaction_29() ->
      skip_token .
 
 -compile({inline,yyaction_30/0}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 106).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 106).
 yyaction_30() ->
      skip_token .
 
 -compile({inline,yyaction_31/0}).
--file("/home/jorgen/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 107).
+-file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_scan.xrl", 107).
 yyaction_31() ->
      skip_token .
 
