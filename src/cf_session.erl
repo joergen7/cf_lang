@@ -16,7 +16,7 @@
 %% Callback function declarations
 %% =========================================================
 
--callback submit( Ref::pid(), Msg::term() ) -> ok.
+-callback submit( Ref::pid(), Msg::tuple() ) -> ok.
 
 
 %%==========================================================
@@ -98,7 +98,10 @@ handle_event( {reply, {error, Reason}}, _, StateData ) ->
 
 handle_event( {submit, App}, _, StateData=#state_data{} ) ->
   % TODO
-  {stop, nyi, StateData}.
+  {stop, nyi, StateData};
+
+handle_event( _Event, State, StateData ) ->
+  {next_state, State, StateData}.
 
 
 

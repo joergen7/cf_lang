@@ -1,10 +1,7 @@
 -module( cf_lang_sup ).
-
 -behaviour( supervisor ).
 
--export( [start_link/0, start_tcpsession/2] ).
-
-%% Supervisor callbacks
+-export( [start_link/0, start_tcp_session/1, start_session/3] ).
 -export( [init/1] ).
 
 -define( SERVER, ?MODULE ).
@@ -16,22 +13,40 @@
 start_link() ->
   supervisor:start_link( {local, ?SERVER}, ?MODULE, [] ).
 
-start_tcpsession( SupRef, Socket ) ->
+start_tcp_session( Socket ) ->
   ChildSpec = #{
-                child_id => {cf_tcp,
-                             erlang:unique_integer( [positive, monotonic] )},
-                start    => [cf_tcpport, start_link, [Socket]],
-                restart  => temporary,
-                type     => worker
+                id      => {cf_tcp_session,
+                            erlang:unique_integer( [positive, monotonic] )},
+                start   => {cf_tcp_session, start_link, [Socket]},
+                restart => temporary,
+                type    => worker
                },
-  supervisor:start_child( SupRef, ChildSpec ).
+  supervisor:start_child( ?SERVER, ChildSpec ).
+
+start_session( Query, Rho, Gamma ) ->
+  ChildSpec = #{
+                id      => {cf_session,
+                            erlang:unique_integer( [positive, monotonic] )},
+                start   => {cf_session, start_link, [Query, Rho, Gamma]},
+                restart => temporary,
+                type    => worker
+               },
+  supervisor:start_child( ?SERVER, ChildSpec ).
 
 %%====================================================================
 %% Supervisor callbacks
 %%====================================================================
 
 init( [] ) ->
-    {ok, { {one_for_one, 0, 1}, []} }.
+
+    TcpSrv = #{
+               id      => tcpsrv,
+               start   => {cf_tcp_srv, start_link, []},
+               restart => permanent,
+               type    => worker
+              },
+
+    {ok, { {one_for_one, 0, 1}, [TcpSrv]} }.
 
 %%====================================================================
 %% Internal functions
