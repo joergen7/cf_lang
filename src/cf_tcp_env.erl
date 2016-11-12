@@ -6,7 +6,9 @@
 -export( [start_link/1] ).
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
+-export( [preop/2, op/2] ).
 -export( [submit/2] ).
+-export( [halt/2] ).
 
 -define( PROTOCOL, <<"cf_lang">> ).
 -define( VSN, <<"0.1.0">> ).
@@ -15,7 +17,7 @@
 %% API functions
 %%==========================================================
 
--record( state_data, { socket, session=undef } ).
+-record( state_data, { socket, tag=undef, session=undef } ).
 
 %%==========================================================
 %% API functions
@@ -32,43 +34,61 @@ start_link( Socket ) ->
 code_change( _OldVsn, StateName, StateData, _Extra ) ->
   {ok, StateName, StateData}.
 
-
 handle_sync_event( _Event, _From, StateName, StateData ) ->
   {reply, {error, ignored}, StateName, StateData}.
 
-terminate( _Reason, _StateName, _StateData ) ->
-  ok.
+terminate( _Reason, _StateName, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Closing connected socket.~n" ),
+  gen_tcp:close( Socket ).
 
 
-handle_event( {submit, App}, op, StateData=#state_data{ socket=Socket } ) ->
-  gen_tcp:send( Socket, encode( submit, App ) ),
+handle_event( {submit, App}, op,
+              StateData=#state_data{ socket=Socket, tag=Tag } ) ->
+  gen_tcp:send( Socket, encode( submit, Tag, App ) ),
   {next_state, op, StateData};
 
 handle_event( _Event, State, StateData ) ->
   {next_state, State, StateData}.
 
 init( Socket ) ->
+  process_flag( trap_exit, true ),
+  io:format( "Connecting socket.~n" ),
   {ok, preop, #state_data{ socket=Socket }}.
 
-handle_info( {tcp, Socket, S}, preop,
+handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Received data: ~p~n", [B] ),
+  {Tag, S} = decode( preop, B ),
   case cf_parse:string( S ) of
     {error, Reason} ->
-      gen_tcp:send( Socket, encode( error, Reason ) );
+      ok = gen_tcp:send( Socket, encode( error, Tag, Reason ) ),
+      {stop, normal, StateData};
     {ok, {Query, Rho, Gamma}} ->
       M = {?MODULE, self()},
       case cf_session:start_link( M, M, {Query, Rho, Gamma} ) of
         {error, Reason} -> error( Reason );
         {ok, Session}   ->
-          {next_state, op, StateData#state_data{ session=Session }}
+          {next_state, op, StateData#state_data{ session=Session, tag=Tag }}
       end
   end;
 
 handle_info( {tcp_closed, Socket}, _, StateData=#state_data{ socket=Socket } ) ->
   {stop, normal, StateData};
 
-handle_info( _Info, State, StateData ) ->
-  {next_state, State, StateData}.
+handle_info( {'EXIT', From, Reason}, State, StateData ) ->
+  {stop, Reason, StateData}.
+
+
+op( {halt, Result}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
+  gen_tcp:send( Socket, encode( halt, Tag, Result ) ),
+  {stop, normal, StateData};
+
+op( {submit, App}, StateData ) ->
+  % TODO
+  {stop, nyi, StateData}.
+
+preop( _Event, StateData ) ->
+  {next_state, preop, StateData}.
 
 
 %%==========================================================
@@ -77,6 +97,10 @@ handle_info( _Info, State, StateData ) ->
 
 submit( App, {?MODULE, Ref} ) ->
   gen_fsm:send_event( Ref, {submit, App} ).
+
+%%==========================================================
+%% User callback functions
+%%==========================================================
 
 halt( Result, {?MODULE, Ref} ) ->
   gen_fsm:send_event( Ref, {halt, Result} ).
@@ -87,10 +111,11 @@ halt( Result, {?MODULE, Ref} ) ->
 %% Internal Functions
 %%==========================================================
 
-encode( error, {Line, Module, Reason} ) ->
+encode( error, Tag, {Line, Module, Reason} ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
+                   tag      => Tag,
                    msg_type => error,
                    data     => #{ line   => Line,
                                   module => Module,
@@ -98,7 +123,7 @@ encode( error, {Line, Module, Reason} ) ->
                                 }
                  } );
 
-encode( submit, {app, AppLine, _, Lam, Fa} ) ->
+encode( submit, Tag, {app, AppLine, _, Lam, Fa} ) ->
 
   {lam, _, LamName, Sign, Body} = Lam,
   {sign, Lo, Li} = Sign,
@@ -118,6 +143,7 @@ encode( submit, {app, AppLine, _, Lam, Fa} ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
+                   tag      => Tag,
                    msg_type => submit,
                    data     => #{
                                  app_line => AppLine,
@@ -128,4 +154,37 @@ encode( submit, {app, AppLine, _, Lam, Fa} ) ->
                                  script   => list_to_binary( Script ),
                                  arg_map  => ArgMap
                                 }
+                 } );
+
+
+encode( halt, Tag, {ok, ExprLst} ) ->
+
+  L = [list_to_binary( X ) || {str, X} <- ExprLst],
+
+  jsone:encode( #{ protocol => ?PROTOCOL,
+                   vsn      => ?VSN,
+                   tag      => Tag,
+                   msg_type => halt,
+                   data     => #{
+                                 status => ok,
+                                 result => L
+                                }
+                 } );
+
+encode( halt, Tag, {error, {Line, Mod, Msg}} ) ->
+
+  jsone:encode( #{ protocol => ?PROTOCOL,
+                   vsn      => ?VSN,
+                   tag      => Tag,
+                   msg_type => halt,
+                   data     => #{
+                                 status => error,
+                                 line   => Line,
+                                 module => Mod,
+                                 msg    => list_to_binary( Msg )
+                                }
                  } ).
+
+decode( preop, B ) ->
+  #{ <<"tag">> := Tag, <<"wf">> := Wf } = jsone:decode( B ),
+  {Tag, binary_to_list( Wf )}.

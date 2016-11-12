@@ -15,9 +15,9 @@ start_link() ->
 
 start_tcp_session( Socket ) ->
   ChildSpec = #{
-                id      => {cf_tcp_session,
+                id      => {cf_tcp_env,
                             erlang:unique_integer( [positive, monotonic] )},
-                start   => {cf_tcp_session, start_link, [Socket]},
+                start   => {cf_tcp_env, start_link, [Socket]},
                 restart => temporary,
                 type    => worker
                },
@@ -46,7 +46,7 @@ init( [] ) ->
                type    => worker
               },
 
-    {ok, { {one_for_one, 0, 1}, [TcpSrv]} }.
+    {ok, { {one_for_one, 10, 5}, [TcpSrv]} }.
 
 %%====================================================================
 %% Internal functions

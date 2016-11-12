@@ -1,7 +1,7 @@
 -module( cf_tcp_srv ).
 
 -define( TCP_PORT, 17489 ).
--define( LISTEN_OPT, [list, {packet, 4}, {reuseaddr, true}, {active, true}] ).
+-define( LISTEN_OPT, [binary, {packet, 4}, {reuseaddr, true}, {active, true}] ).
 
 -export( [start_link/0] ).
 
@@ -10,7 +10,7 @@
 %%==========================================================
 
 start_link() ->
-  io:format( "Starting server ...~n" ),
+  io:format( "Starting server.~n" ),
   case gen_tcp:listen( ?TCP_PORT, ?LISTEN_OPT ) of
     {error, Reason}    -> io:format( "~p~n", [Reason] ), error( Reason );
     {ok, ListenSocket} ->
@@ -22,10 +22,18 @@ start_link() ->
 %%==========================================================
 
 listen_loop( ListenSocket ) ->
-  case gen_tcp:accept( ListenSocket ) of
-    {error, Reason} -> error( Reason );
-    stop            -> ok;
-    {ok, Socket}    ->
+  process_flag( trap_exit, true ),
+  case gen_tcp:accept( ListenSocket, 500 ) of
+    {error, timeout} ->
+      receive
+        _ ->
+          io:format( "Closing listen socket.~n" ),
+          gen_tcp:close( ListenSocket )
+      after 0 ->
+        listen_loop( ListenSocket )
+      end;
+    {error, Reason}  -> error( Reason );
+    {ok, Socket}     ->
       {ok, Child} = cf_lang_sup:start_tcp_session( Socket ),
       case gen_tcp:controlling_process( Socket, Child ) of
         {error, Reason} -> error( Reason );

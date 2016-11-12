@@ -71,6 +71,7 @@ idle( {reply, {ok, ReplyMap}},
 
 
 
+
 busy( {reply, {ok, ReplyMap}}, StateData=#state_data{ theta=Theta } ) ->
   {Rho, Mu, Gamma, Omega} = Theta,
   Theta1 = {Rho, Mu, Gamma, maps:merge( ReplyMap, Omega )},
@@ -92,6 +93,9 @@ busy( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
 busy( {submit, App}, StateData=#state_data{ exec_env=ExecEnv } ) ->
   ExecEnv:submit( App ),
   {next_state, busy, StateData}.
+
+
+
 
 saturated( {reply, {ok, ReplyMap}},
            StateData=#state_data{ theta=Theta } ) ->
