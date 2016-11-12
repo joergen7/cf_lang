@@ -40,12 +40,12 @@ handle_sync_event( {submit,
                    _From, StateName,
                    StateData=#state_data{ exec_env=ExecEnv, seen=Seen } ) ->
 
-  Hash = crypto:hash( ?HASH_ALGO, App ),
+  Hash = hash( App ),
 
   Seen1 = case sets:is_element( Hash, Seen ) of
             true  -> Seen;
             false ->
-              ExecEnv:submit( App ),
+              ExecEnv:submit( Hash, App ),
               sets:add_element( Hash, Seen )
           end,
 
@@ -140,3 +140,12 @@ fire( Query, Theta ) ->
       end,
 
   spawn_link( F ).
+
+hash( {app, _, _, {lam, _, _, {sign, Lo, Li}, B}, Fa} ) ->
+  B = term_to_binary( {Lo, Li, B, Fa} ),
+  <<X:256/big-unsigned-integer>> = crypto:hash( ?HASH_ALGO, B ),
+  list_to_binary( io_lib:format( "~.16B", [X] ) ).
+
+
+
+

@@ -4,4 +4,4 @@
 %% Callback function declarations
 %% =========================================================
 
--callback submit( App::tuple(), {Mod::atom(), Ref::pid()} ) -> ok.
+-callback submit( R::binary(), App::tuple(), {Mod::atom(), Ref::pid()} ) -> ok.

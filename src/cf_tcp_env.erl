@@ -7,7 +7,7 @@
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
 -export( [op/2] ).
--export( [submit/2] ).
+-export( [submit/3] ).
 -export( [halt/2] ).
 
 -define( PROTOCOL, <<"cf_lang">> ).
@@ -42,11 +42,6 @@ terminate( _Reason, _StateName, #state_data{ socket=Socket } ) ->
   gen_tcp:close( Socket ).
 
 
-handle_event( {submit, App}, op,
-              StateData=#state_data{ socket=Socket, tag=Tag } ) ->
-  gen_tcp:send( Socket, encode( submit, Tag, App ) ),
-  {next_state, op, StateData};
-
 handle_event( _Event, State, StateData ) ->
   {next_state, State, StateData}.
 
@@ -58,7 +53,7 @@ init( Socket ) ->
 handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
   io:format( "Received data: ~p~n", [B] ),
-  {Tag, S} = decode( preop, B ),
+  {Tag, S} = decode( workflow, B ),
   case cf_parse:string( S ) of
     {error, Reason} ->
       ok = gen_tcp:send( Socket, encode( error, Tag, Reason ) ),
@@ -83,8 +78,8 @@ op( {halt, Result}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
   gen_tcp:send( Socket, encode( halt, Tag, Result ) ),
   {stop, normal, StateData};
 
-op( {submit, App}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
-  gen_tcp:send( Socket, encode( submit, Tag, App ) ),
+op( {submit, R, App}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
+  gen_tcp:send( Socket, encode( submit, Tag, {R, App} ) ),
   {next_state, op, StateData}.
 
 
@@ -92,8 +87,8 @@ op( {submit, App}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
 %% Execution environment callback functions
 %%==========================================================
 
-submit( App, {?MODULE, Ref} ) ->
-  gen_fsm:send_event( Ref, {submit, App} ).
+submit( R, App, {?MODULE, Ref} ) ->
+  gen_fsm:send_event( Ref, {submit, R, App} ).
 
 %%==========================================================
 %% User callback functions
@@ -120,7 +115,7 @@ encode( error, Tag, {Line, Module, Reason} ) ->
                                 }
                  } );
 
-encode( submit, Tag, {app, AppLine, _, Lam, Fa} ) ->
+encode( submit, Tag, {R, {app, AppLine, _, Lam, Fa}} ) ->
 
   {lam, _, LamName, Sign, Body} = Lam,
   {sign, Lo, Li} = Sign,
@@ -143,6 +138,7 @@ encode( submit, Tag, {app, AppLine, _, Lam, Fa} ) ->
                    tag      => Tag,
                    msg_type => submit,
                    data     => #{
+                                 id       => R,
                                  app_line => AppLine,
                                  lam_name => LamName,
                                  out_vars => OutVars,
@@ -182,6 +178,30 @@ encode( halt, Tag, {error, {Line, Mod, Msg}} ) ->
                                 }
                  } ).
 
-decode( preop, B ) ->
-  #{ <<"tag">> := Tag, <<"wf">> := Wf } = jsone:decode( B ),
-  {Tag, binary_to_list( Wf )}.
+decode( workflow, B ) ->
+  #{ <<"protocol">> := ?PROTOCOL,
+     <<"vsn">>      := ?VSN,
+     <<"tag">>      := Tag,
+     <<"msg_type">> := <<"workflow">>,
+     <<"data">>     := #{
+                         <<"lang">> := <<"cuneiform">>,
+                         <<"content">> := Wf
+                       }
+  } = jsone:decode( B ),
+
+  {Tag, binary_to_list( Wf )};
+
+decode( reply, B ) ->
+
+  #{ <<"protocol">> := ?PROTOCOL,
+     <<"vsn">>      := ?VSN,
+     <<"tag">>      := Tag,
+     <<"msg_type">> := <<"reply">>,
+     <<"data">>     := #{
+                         <<"status">> := <<"ok">>,
+                         <<"id">>     := R,
+                         <<"result">> := Result
+                       }
+  } = jsone:decode( B ),
+
+  {Tag, R, Result}.

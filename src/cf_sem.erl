@@ -39,7 +39,7 @@
 -type str()     :: {str, S::string()}.                                          % (2)
 -type var()     :: {var, Line::pos_integer(), N::string()}.                     % (3)
 -type param()   :: {param, M::name(), Pl::boolean()}.                           % (4)
--type fut()     :: {fut, LamName::string(), R::pos_integer(), Lo::[param()]}.   % (5)
+-type fut()     :: {fut, LamName::string(), R::binary(), Lo::[param()]}.        % (5)
 -type select()  :: {select, AppLine::pos_integer(), C::pos_integer(), U::fut()}.% (6)
 -type cnd()     :: {cnd, Line::pos_integer(),                                   % (7)
                          Xc::[expr()], Xt::[expr()], Xe::[expr()]}.
