@@ -1,16 +1,18 @@
 -module( cf_session ).
--behavior( gen_fsm ).
+-behaviour( gen_fsm ).
 
 -export( [start_link/3, reply/2] ).
 -export( [code_change/4, init/1, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
 -export( [idle/2, busy/2, saturated/2] ).
 
+-define( HASH_ALGO, sha256 ).
+
 %%==========================================================
 %% Record definitions
 %%==========================================================
 
--record( state_data, {usr, exec_env, query, theta} ).
+-record( state_data, {usr, exec_env, query, theta, seen=sets:new()} ).
 
 %%==========================================================
 %% API functions
@@ -33,8 +35,23 @@ code_change( _OldVsn, StateName, StateData, _Extra ) ->
 handle_info( _Info, StateName, StateData ) ->
   {next_state, StateName, StateData}.
 
-handle_sync_event( _Event, _From, StateName, StateData ) ->
-  {reply, {error, ignored}, StateName, StateData}.
+handle_sync_event( {submit,
+                    App={app, _, _, {lam, _, LamName, {sign, Lo, _}, _}, _}},
+                   _From, StateName,
+                   StateData=#state_data{ exec_env=ExecEnv, seen=Seen } ) ->
+
+  Hash = crypto:hash( ?HASH_ALGO, App ),
+
+  Seen1 = case sets:is_element( Hash, Seen ) of
+            true  -> Seen;
+            false ->
+              ExecEnv:submit( App ),
+              sets:add_element( Hash, Seen )
+          end,
+
+  {reply, {fut, LamName, Hash, Lo}, StateName,
+          StateData#state_data{ seen=Seen1 }}.
+
 
 terminate( _Reason, _StateName, _StateData ) ->
   ok.
@@ -48,7 +65,8 @@ init( {Usr, ExecEnv, {Query, Rho, Gamma}} ) ->
   % compose submit function mu
   Parent = self(),
   Mu = fun( App ) ->
-         gen_fsm:send_event( Parent, {submit, App} )
+         {ok, Fut} = gen_fsm:sync_send_all_state_event( Parent, {submit, App} ),
+         Fut
        end,
 
   % construct initial context
@@ -88,11 +106,8 @@ busy( {eval, {ok, Y}}, StateData=#state_data{ usr=Usr } ) ->
 
 busy( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
   Usr:halt( {error, Reason} ),
-  {stop, normal, StateData};
+  {stop, normal, StateData}.
 
-busy( {submit, App}, StateData=#state_data{ exec_env=ExecEnv } ) ->
-  ExecEnv:submit( App ),
-  {next_state, busy, StateData}.
 
 
 
@@ -109,14 +124,7 @@ saturated( {eval, {ok, Y}}, StateData=#state_data{ theta=Theta } ) ->
 
 saturated( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
   Usr:halt( {error, Reason} ),
-  {stop, normal, StateData};
-
-saturated( {submit, App}, StateData=#state_data{ exec_env=ExecEnv } ) ->
-  ExecEnv:submit( App ),
-  {next_state, saturated, StateData}.
-
-
-
+  {stop, normal, StateData}.
 
 
 

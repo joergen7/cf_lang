@@ -1,12 +1,12 @@
 -module( cf_tcp_env ).
--behavior( gen_fsm ).
--behavior( cf_usr ).
--behavior( cf_exec_env ).
+-behaviour( gen_fsm ).
+-behaviour( cf_usr ).
+-behaviour( cf_exec_env ).
 
 -export( [start_link/1] ).
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
--export( [preop/2, op/2] ).
+-export( [op/2] ).
 -export( [submit/2] ).
 -export( [halt/2] ).
 
@@ -37,7 +37,7 @@ code_change( _OldVsn, StateName, StateData, _Extra ) ->
 handle_sync_event( _Event, _From, StateName, StateData ) ->
   {reply, {error, ignored}, StateName, StateData}.
 
-terminate( _Reason, _StateName, StateData=#state_data{ socket=Socket } ) ->
+terminate( _Reason, _StateName, #state_data{ socket=Socket } ) ->
   io:format( "Closing connected socket.~n" ),
   gen_tcp:close( Socket ).
 
@@ -75,7 +75,7 @@ handle_info( {tcp, Socket, B}, preop,
 handle_info( {tcp_closed, Socket}, _, StateData=#state_data{ socket=Socket } ) ->
   {stop, normal, StateData};
 
-handle_info( {'EXIT', From, Reason}, State, StateData ) ->
+handle_info( {'EXIT', _From, Reason}, _, StateData ) ->
   {stop, Reason, StateData}.
 
 
@@ -83,12 +83,9 @@ op( {halt, Result}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
   gen_tcp:send( Socket, encode( halt, Tag, Result ) ),
   {stop, normal, StateData};
 
-op( {submit, App}, StateData ) ->
-  % TODO
-  {stop, nyi, StateData}.
-
-preop( _Event, StateData ) ->
-  {next_state, preop, StateData}.
+op( {submit, App}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
+  gen_tcp:send( Socket, encode( submit, Tag, App ) ),
+  {next_state, op, StateData}.
 
 
 %%==========================================================
