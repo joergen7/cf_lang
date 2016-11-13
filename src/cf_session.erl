@@ -146,6 +146,43 @@ hash( {app, _, _, {lam, _, _, {sign, Lo, Li}, B}, Fa} ) ->
   <<X:256/big-unsigned-integer>> = crypto:hash( ?HASH_ALGO, B ),
   list_to_binary( io_lib:format( "~.16B", [X] ) ).
 
+app_to_submit( Tag, {app, AppLine, _, Lam, Fa} ) ->
 
+  {lam, _, LamName, Sign, Body} = Lam,
+  {sign, Lo, Li} = Sign,
+  {forbody, Lang, Script} = Body,
 
+  OutVars = [#{ name=>list_to_binary( N ), is_file=>Pf, is_list=>Pl }
+             || {param, {name, N, Pf}, Pl} <- Lo],
 
+  InVars = [#{ name=>list_to_binary( N ), is_file=>Pf, is_list=>Pl }
+            || {param, {name, N, Pf}, Pl} <- Li],
+
+  F = fun( N, V, Acc ) ->
+        Acc#{ list_to_binary( N ) => [list_to_binary( S ) ||{str, S} <- V] }
+      end,
+
+  ArgMap = maps:fold( F, #{}, Fa ),
+
+  R = hash( App ),
+
+  #submit{ tag      = Tag,
+           id       = R,
+           app_line = AppLine,
+           lam_name = LamName,
+           out_vars = Lo,
+           in_vars  = Li,
+           lang     = Lang,
+           script   = Script,
+           arg_map  = ArgMap }.
+
+expr_lst_to_halt_ok( Tag, ExprLst ) ->
+  #halt_ok{ tag=Tag, result=[list_to_binary( S ) ||{str, S} <- V] }.
+
+error_info_to_halt_error_workflow( Tag, {Line, Module, Reason} ) ->
+  #halt_workflow_error{ tag    = Tag,
+                        line   = Line,
+                        module = Module,
+                        reason = list_to_binary( Reason ) }.
+
+reply_error_to_halt_error_task( Tag, #reply_error{} ) ->

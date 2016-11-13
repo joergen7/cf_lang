@@ -10,7 +10,7 @@
 -export( [submit/3] ).
 -export( [halt/2] ).
 
--define( PROTOCOL, <<"cf_lang">> ).
+-define( PROTOCOL, cf_lang ).
 -define( VSN, <<"0.1.0">> ).
 
 %%==========================================================
@@ -103,80 +103,81 @@ halt( Result, {?MODULE, Ref} ) ->
 %% Internal Functions
 %%==========================================================
 
-encode( error, Tag, {Line, Module, Reason} ) ->
+encode( #halt_ok{ tag    = Tag,
+                  result = Result } ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    tag      => Tag,
-                   msg_type => error,
+                   msg_type => halt_ok,
+                   data     => #{ result => Result }
+                 } );
+
+encode( #halt_error_workflow{ tag    = Tag,
+                              line   = Line,
+                              module = Module,
+                              reason = Reason} ) ->
+
+  jsone:encode( #{ protocol => ?PROTOCOL,
+                   vsn      => ?VSN,
+                   tag      => Tag,
+                   msg_type => halt_error_workflow,
                    data     => #{ line   => Line,
                                   module => Module,
-                                  reason => list_to_binary( Reason )
+                                  reason => Reason
                                 }
                  } );
 
-encode( submit, Tag, {R, {app, AppLine, _, Lam, Fa}} ) ->
+encode( #halt_error_task{ tag      = Tag,
+                          id       = R,
+                          app_line = AppLine,
+                          lam_name = LamName,
+                          script   = Script,
+                          output   = Output } ) ->
 
-  {lam, _, LamName, Sign, Body} = Lam,
-  {sign, Lo, Li} = Sign,
-  {forbody, Lang, Script} = Body,
+  jsone:encode( #{ protocol => ?PROTOCOL,
+                   vsn      => ?VSN,
+                   tag      => Tag,
+                   msg_type => halt_error_task,
+                   data     => #{
+                                 id       => R
+                                 app_line => Line,
+                                 lam_name => LamName,
+                                 script   => Script,
+                                 output   => Output
+                                }
+                 } );
 
-  OutVars = [#{ name=>list_to_binary( N ), is_file=>Pf, is_list=>Pl }
-             || {param, {name, N, Pf}, Pl} <- Lo],
 
-  InVars = [#{ name=>list_to_binary( N ), is_file=>Pf, is_list=>Pl }
-            || {param, {name, N, Pf}, Pl} <- Li],
+encode( #submit{ tag      = Tag,
+                 id       = R,
+                 app_line = AppLine,
+                 lam_line = LamLine,
+                 out_vars = OutVars,
+                 in_vars  = InVars,
+                 lang     = Lang,
+                 script   = Script,
+                 arg_map  = ArgMap } ) ->
 
-  F = fun( N, V, Acc ) ->
-        Acc#{ list_to_binary( N ) => [list_to_binary( S ) ||{str, S} <- V] }
-      end,
-
-  ArgMap = maps:fold( F, #{}, Fa ),
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    tag      => Tag,
                    msg_type => submit,
-                   data     => #{
-                                 id       => R,
-                                 app_line => AppLine,
-                                 lam_name => LamName,
-                                 out_vars => OutVars,
-                                 in_vars  => InVars,
-                                 lang     => Lang,
-                                 script   => list_to_binary( Script ),
-                                 arg_map  => ArgMap
-                                }
-                 } );
-
-
-encode( halt, Tag, {ok, ExprLst} ) ->
-
-  L = [list_to_binary( X ) || {str, X} <- ExprLst],
-
-  jsone:encode( #{ protocol => ?PROTOCOL,
-                   vsn      => ?VSN,
-                   tag      => Tag,
-                   msg_type => halt,
-                   data     => #{
-                                 status => ok,
-                                 result => L
-                                }
-                 } );
-
-encode( halt, Tag, {error, {Line, Mod, Msg}} ) ->
-
-  jsone:encode( #{ protocol => ?PROTOCOL,
-                   vsn      => ?VSN,
-                   tag      => Tag,
-                   msg_type => halt,
-                   data     => #{
-                                 status => error,
-                                 line   => Line,
-                                 module => Mod,
-                                 msg    => list_to_binary( Msg )
+                   data     => #{ id       => R,
+                                  app_line => AppLine,
+                                  lam_name => LamName,
+                                  out_vars => OutVars,
+                                  in_vars  => InVars,
+                                  lang     => Lang,
+                                  script   => list_to_binary( Script ),
+                                  arg_map  => ArgMap
                                 }
                  } ).
+
+
+
+
 
 decode( workflow, B ) ->
   #{ <<"protocol">> := ?PROTOCOL,
@@ -185,23 +186,44 @@ decode( workflow, B ) ->
      <<"msg_type">> := <<"workflow">>,
      <<"data">>     := #{
                          <<"lang">> := <<"cuneiform">>,
-                         <<"content">> := Wf
+                         <<"content">> := Content
                        }
   } = jsone:decode( B ),
 
-  {Tag, binary_to_list( Wf )};
+  #workflow{ tag=Tag, lang=cuneiform, content=Content };
 
 decode( reply, B ) ->
 
   #{ <<"protocol">> := ?PROTOCOL,
      <<"vsn">>      := ?VSN,
      <<"tag">>      := Tag,
-     <<"msg_type">> := <<"reply">>,
+     <<"msg_type">> := <<"reply_ok">>,
      <<"data">>     := #{
-                         <<"status">> := <<"ok">>,
-                         <<"id">>     := R,
-                         <<"result">> := Result
+                         <<"id">>         := R,
+                         <<"result_map">> := ResultMap
                        }
   } = jsone:decode( B ),
 
-  {Tag, R, Result}.
+  #reply_ok{ tag=Tag, id=R, result_map=ResultMap}};
+
+decode( reply, B ) ->
+
+  #{ <<"protocol">> := ?PROTOCOL,
+     <<"vsn">>      := ?VSN,
+     <<"tag">>      := Tag,
+     <<"msg_type">> := <<"reply_error">>,
+     <<"data">>     := #{
+                         <<"id">>       := R,
+                         <<"output">>   := Output,
+                         <<"app_line">> := AppLine,
+                         <<"lam_name>>" := LamName,
+                         <<"script">>   := Script
+                       }
+  } = jsone:decode( B ),
+
+  #reply_error{ tag      = Tag,
+                id       = R,
+                app_line = AppLine,
+                lam_name = LamName,
+                script   = Script,
+                output   = Output }.
