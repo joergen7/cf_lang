@@ -7,7 +7,7 @@
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
 -export( [op/2] ).
--export( [submit/3] ).
+-export( [submit/2] ).
 -export( [halt/2] ).
 
 -define( PROTOCOL, cf_lang ).
@@ -53,14 +53,15 @@ handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
   io:format( "Received data: ~p~n", [B] ),
   Workflow = decode( workflow, B ),
-  case cf_parse:string( S ) of
+  #{ tag := Tag, lang := cuneiform, content := Content } = Workflow,
+  case cf_parse:string( binary_to_list( Content ) ) of
     {error, ErrorInfo} ->
       Halt = cf_session:error_info_to_halt_error_workflow( ErrorInfo ),
       ok = gen_tcp:send( Socket, encode( Halt ) ),
       {stop, normal, StateData};
     {ok, {Query, Rho, Gamma}} ->
       M = {?MODULE, self()},
-      case cf_session:start_link( M, M, {Query, Rho, Gamma} ) of
+      case cf_session:start_link( M, M, Tag, {Query, Rho, Gamma} ) of
         {error, Reason} -> error( Reason );
         {ok, Session}   ->
           {next_state, op, StateData#state_data{ session=Session }}

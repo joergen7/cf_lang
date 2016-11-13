@@ -13,17 +13,17 @@
 %% Record definitions
 %%==========================================================
 
--record( state_data, {usr, exec_env, query, theta, seen=sets:new()} ).
+-record( state_data, {usr, exec_env, tag, query, theta, seen=sets:new()} ).
 
 %%==========================================================
 %% API functions
 %%==========================================================
 
-start_link( Usr, ExecEnv, {Query, Rho, Gamma} ) ->
-  gen_fsm:start_link( ?MODULE, {Usr, ExecEnv, {Query, Rho, Gamma}}, [] ).
+start_link( Usr, ExecEnv, Tag, {Query, Rho, Gamma} ) ->
+  gen_fsm:start_link( ?MODULE, {Usr, ExecEnv, Tag, {Query, Rho, Gamma}}, [] ).
 
 reply( Session, Reply ) ->
-  gen_fsm:send_event( Session, {reply, Reply} ).
+  gen_fsm:send_event( Session, Reply ).
 
 
 %%==========================================================
@@ -61,7 +61,7 @@ handle_event( _Event, State, StateData ) ->
   {next_state, State, StateData}.
 
 
-init( {Usr, ExecEnv, {Query, Rho, Gamma}} ) ->
+init( {Usr, ExecEnv, Tag, {Query, Rho, Gamma}} ) ->
 
   % compose submit function mu
   Parent = self(),
@@ -76,6 +76,7 @@ init( {Usr, ExecEnv, {Query, Rho, Gamma}} ) ->
 
   {ok, busy, #state_data{ usr      = Usr,
                           exec_env = ExecEnv,
+                          tag      = Tag,
                           query    = Query,
                           theta    = Theta }}.
 
