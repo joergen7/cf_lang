@@ -17,7 +17,7 @@
 %% API functions
 %%==========================================================
 
--record( state_data, { socket, tag=undef, session=undef } ).
+-record( state_data, { socket, session } ).
 
 %%==========================================================
 %% API functions
@@ -41,7 +41,6 @@ terminate( _Reason, _StateName, #state_data{ socket=Socket } ) ->
   io:format( "Closing connected socket.~n" ),
   gen_tcp:close( Socket ).
 
-
 handle_event( _Event, State, StateData ) ->
   {next_state, State, StateData}.
 
@@ -53,17 +52,18 @@ init( Socket ) ->
 handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
   io:format( "Received data: ~p~n", [B] ),
-  {Tag, S} = decode( workflow, B ),
+  Workflow = decode( workflow, B ),
   case cf_parse:string( S ) of
-    {error, Reason} ->
-      ok = gen_tcp:send( Socket, encode( error, Tag, Reason ) ),
+    {error, ErrorInfo} ->
+      Halt = cf_session:error_info_to_halt_error_workflow( ErrorInfo ),
+      ok = gen_tcp:send( Socket, encode( Halt ) ),
       {stop, normal, StateData};
     {ok, {Query, Rho, Gamma}} ->
       M = {?MODULE, self()},
       case cf_session:start_link( M, M, {Query, Rho, Gamma} ) of
         {error, Reason} -> error( Reason );
         {ok, Session}   ->
-          {next_state, op, StateData#state_data{ session=Session, tag=Tag }}
+          {next_state, op, StateData#state_data{ session=Session }}
       end
   end;
 
@@ -74,12 +74,20 @@ handle_info( {'EXIT', _From, Reason}, _, StateData ) ->
   {stop, Reason, StateData}.
 
 
-op( {halt, Result}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
-  gen_tcp:send( Socket, encode( halt, Tag, Result ) ),
+op( Halt=#halt_ok{}, StateData=#state_data{ socket=Socket } ) ->
+  gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
-op( {submit, R, App}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
-  gen_tcp:send( Socket, encode( submit, Tag, {R, App} ) ),
+op( Halt=#halt_error_workflow{}, StateData=#state_data{ socket=Socket } ) ->
+  gen_tcp:send( Socket, encode( Halt ) ),
+  {stop, normal, StateData};
+
+op( Halt=#halt_error_task{}, StateData=#state_data{ socket=Socket } ) ->
+  gen_tcp:send( Socket, encode( Halt ) ),
+  {stop, normal, StateData};
+
+op( Submit=#submit{}, StateData=#state_data{ socket=Socket } ) ->
+  gen_tcp:send( Socket, encode( Submit ) ),
   {next_state, op, StateData}.
 
 
@@ -87,17 +95,15 @@ op( {submit, R, App}, StateData=#state_data{ socket=Socket, tag=Tag } ) ->
 %% Execution environment callback functions
 %%==========================================================
 
-submit( R, App, {?MODULE, Ref} ) ->
-  gen_fsm:send_event( Ref, {submit, R, App} ).
+submit( Submit, {?MODULE, Ref} ) ->
+  gen_fsm:send_event( Ref, Submit ).
 
 %%==========================================================
 %% User callback functions
 %%==========================================================
 
-halt( Result, {?MODULE, Ref} ) ->
-  gen_fsm:send_event( Ref, {halt, Result} ).
-
-
+halt( Halt, {?MODULE, Ref} ) ->
+  gen_fsm:send_event( Ref, Halt ).
 
 %%==========================================================
 %% Internal Functions
@@ -140,7 +146,7 @@ encode( #halt_error_task{ tag      = Tag,
                    tag      => Tag,
                    msg_type => halt_error_task,
                    data     => #{
-                                 id       => R
+                                 id       => R,
                                  app_line => Line,
                                  lam_name => LamName,
                                  script   => Script,
@@ -184,10 +190,9 @@ decode( workflow, B ) ->
      <<"vsn">>      := ?VSN,
      <<"tag">>      := Tag,
      <<"msg_type">> := <<"workflow">>,
-     <<"data">>     := #{
-                         <<"lang">> := <<"cuneiform">>,
-                         <<"content">> := Content
-                       }
+     <<"data">>     := #{ <<"lang">> := <<"cuneiform">>,
+                          <<"content">> := Content
+                        }
   } = jsone:decode( B ),
 
   #workflow{ tag=Tag, lang=cuneiform, content=Content };
@@ -198,13 +203,12 @@ decode( reply, B ) ->
      <<"vsn">>      := ?VSN,
      <<"tag">>      := Tag,
      <<"msg_type">> := <<"reply_ok">>,
-     <<"data">>     := #{
-                         <<"id">>         := R,
-                         <<"result_map">> := ResultMap
-                       }
+     <<"data">>     := #{ <<"id">>         := R,
+                          <<"result_map">> := ResultMap
+                        }
   } = jsone:decode( B ),
 
-  #reply_ok{ tag=Tag, id=R, result_map=ResultMap}};
+  #reply_ok{ tag=Tag, id=R, result_map=ResultMap};
 
 decode( reply, B ) ->
 
@@ -212,13 +216,12 @@ decode( reply, B ) ->
      <<"vsn">>      := ?VSN,
      <<"tag">>      := Tag,
      <<"msg_type">> := <<"reply_error">>,
-     <<"data">>     := #{
-                         <<"id">>       := R,
-                         <<"output">>   := Output,
-                         <<"app_line">> := AppLine,
-                         <<"lam_name>>" := LamName,
-                         <<"script">>   := Script
-                       }
+     <<"data">>     := #{ <<"id">>         := R,
+                          <<"output">>     := Output,
+                          <<"app_line">>   := AppLine,
+                          <<"lam_name>>">> := LamName,
+                          <<"script">>     := Script
+                        }
   } = jsone:decode( B ),
 
   #reply_error{ tag      = Tag,

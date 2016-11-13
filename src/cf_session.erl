@@ -6,6 +6,7 @@
           handle_sync_event/4, terminate/3] ).
 -export( [idle/2, busy/2, saturated/2] ).
 
+-include( "cf_lang.hrl" ).
 -define( HASH_ALGO, sha256 ).
 
 %%==========================================================
@@ -99,14 +100,14 @@ busy( {eval, {ok, Y}}, StateData=#state_data{ usr=Usr } ) ->
   case cf_sem:pnormal( Y ) of
     true ->
       Usr:halt( {ok, Y} ),
-      {stop, normal, StateData};
+      {next_state, zombie, StateData};
     false ->
       {next_state, idle, StateData#state_data{ query=Y }}
   end;
 
 busy( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
   Usr:halt( {error, Reason} ),
-  {stop, normal, StateData}.
+  {next_state, zombie, StateData}.
 
 
 
@@ -124,7 +125,7 @@ saturated( {eval, {ok, Y}}, StateData=#state_data{ theta=Theta } ) ->
 
 saturated( {eval, {error, Reason}}, StateData=#state_data{ usr=Usr } ) ->
   Usr:halt( {error, Reason} ),
-  {stop, normal, StateData}.
+  {next_state, zombie, StateData}.
 
 
 
@@ -146,7 +147,7 @@ hash( {app, _, _, {lam, _, _, {sign, Lo, Li}, B}, Fa} ) ->
   <<X:256/big-unsigned-integer>> = crypto:hash( ?HASH_ALGO, B ),
   list_to_binary( io_lib:format( "~.16B", [X] ) ).
 
-app_to_submit( Tag, {app, AppLine, _, Lam, Fa} ) ->
+app_to_submit( Tag, App={app, AppLine, _, Lam, Fa} ) ->
 
   {lam, _, LamName, Sign, Body} = Lam,
   {sign, Lo, Li} = Sign,
@@ -177,12 +178,25 @@ app_to_submit( Tag, {app, AppLine, _, Lam, Fa} ) ->
            arg_map  = ArgMap }.
 
 expr_lst_to_halt_ok( Tag, ExprLst ) ->
-  #halt_ok{ tag=Tag, result=[list_to_binary( S ) ||{str, S} <- V] }.
+  #halt_ok{ tag=Tag, result=[list_to_binary( S ) ||{str, S} <- ExprLst] }.
 
 error_info_to_halt_error_workflow( Tag, {Line, Module, Reason} ) ->
-  #halt_workflow_error{ tag    = Tag,
+  #halt_error_workflow{ tag    = Tag,
                         line   = Line,
                         module = Module,
                         reason = list_to_binary( Reason ) }.
 
-reply_error_to_halt_error_task( Tag, #reply_error{} ) ->
+reply_error_to_halt_error_task( Tag,
+                                #reply_error{ tag      = Tag,
+                                              id       = Id,
+                                              app_line = AppLine,
+                                              lam_name = LamName,
+                                              output   = Output,
+                                              script   = Script } ) ->
+
+  #halt_error_task{ tag      = Tag,
+                    id       = Id,
+                    app_line = AppLine,
+                    lam_name = LamName,
+                    output   = Output,
+                    script   = Script }.
