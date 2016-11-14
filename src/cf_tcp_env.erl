@@ -62,7 +62,6 @@ handle_sync_event( _Event, _From, StateName, StateData ) ->
   {reply, {error, ignored}, StateName, StateData}.
 
 terminate( _Reason, _StateName, #state_data{ socket=Socket } ) ->
-  io:format( "Closing connected socket.~n" ),
   gen_tcp:close( Socket ).
 
 handle_event( _Event, State, StateData ) ->
@@ -70,12 +69,10 @@ handle_event( _Event, State, StateData ) ->
 
 init( Socket ) ->
   process_flag( trap_exit, true ),
-  io:format( "Connecting socket.~n" ),
   {ok, preop, #state_data{ socket=Socket }}.
 
 handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Received data: ~p~n", [B] ),
   Workflow = decode( workflow, B ),
   #workflow{ tag=Tag, lang=cuneiform, content=Content } = Workflow,
   case cf_parse:string( binary_to_list( Content ) ) of

@@ -31,7 +31,6 @@
 %%==========================================================
 
 start_link() ->
-  io:format( "Starting server.~n" ),
   case gen_tcp:listen( ?TCP_PORT, ?LISTEN_OPT ) of
     {error, Reason}    -> io:format( "~p~n", [Reason] ), error( Reason );
     {ok, ListenSocket} ->
@@ -48,7 +47,6 @@ listen_loop( ListenSocket ) ->
     {error, timeout} ->
       receive
         _ ->
-          io:format( "Closing listen socket.~n" ),
           gen_tcp:close( ListenSocket )
       after 0 ->
         listen_loop( ListenSocket )

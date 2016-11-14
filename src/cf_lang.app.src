@@ -8,7 +8,8 @@
     stdlib
    ]},
   {env,[]},
-  {modules, [cf_lang_app, cf_lang_sup, cf_scan, cf_parse, cf_sem]},
+  {modules, [cf_exec_env, cf_lang, cf_lang_app, cf_lang_sup, cf_parse, cf_scan,
+             cf_sem, cf_session, cf_tcp_env, cf_tcp_srv, cf_usr]},
 
   {maintainers, []},
   {licenses, []},
