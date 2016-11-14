@@ -210,7 +210,7 @@ correl_inparam_should_be_recognized_test() ->
 
 
 
--file("/usr/local/lib/erlang/lib/parsetools-2.1.2/include/yeccpre.hrl", 0).
+-file("/usr/local/lib/erlang/lib/parsetools-2.1.3/include/yeccpre.hrl", 0).
 %%
 %% %CopyrightBegin%
 %%
@@ -1013,6 +1013,7 @@ yeccpars2_80(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_80_(Stack),
  yeccgoto_script(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_app/7}).
 yeccgoto_app(0=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_10(_S, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_app(1=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1034,6 +1035,7 @@ yeccgoto_app(73=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_app(75=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_10(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_assign/7}).
 yeccgoto_assign(0=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_9(_S, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_assign(1=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1043,21 +1045,25 @@ yeccgoto_assign(57, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_assign(60, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_60(60, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_assignlist/7}).
 yeccgoto_assignlist(57, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_59(59, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_assignlist(60=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_61(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_binding/7}).
 yeccgoto_binding(17, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_19(19, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_binding(25, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_19(19, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_bindinglist/7}).
 yeccgoto_bindinglist(17, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_18(18, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_bindinglist(25=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_26(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_cnd/7}).
 yeccgoto_cnd(0=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_8(_S, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_cnd(1=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1079,6 +1085,7 @@ yeccgoto_cnd(73=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_cnd(75=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_8(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_compoundexpr/7}).
 yeccgoto_compoundexpr(0, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_7(7, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_compoundexpr(1, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1094,11 +1101,13 @@ yeccgoto_compoundexpr(73, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_compoundexpr(75, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_76(76, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_defun/7}).
 yeccgoto_defun(0=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_6(_S, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_defun(1=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_6(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_expr/7}).
 yeccgoto_expr(0, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_5(5, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_expr(1, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1120,6 +1129,7 @@ yeccgoto_expr(73, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_expr(75, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_5(5, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_exprlist/7}).
 yeccgoto_exprlist(0, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_4(4, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_exprlist(1, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1141,19 +1151,23 @@ yeccgoto_exprlist(73=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_exprlist(75=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_23(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_inparam/7}).
 yeccgoto_inparam(44, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_47(47, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_inparam(47, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_47(47, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_inparamlist/7}).
 yeccgoto_inparamlist(44, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_46(46, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_inparamlist(47=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_54(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_lang/7}).
 yeccgoto_lang(56, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_66(66, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_name/7}).
 yeccgoto_name(30=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_33(_S, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_name(32=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1169,11 +1183,13 @@ yeccgoto_name(48, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_name(51, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_51(51, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_namelist/7}).
 yeccgoto_namelist(48, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_50(50, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_namelist(51=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_52(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_param/7}).
 yeccgoto_param(30, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_32(32, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_param(32, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -1183,24 +1199,29 @@ yeccgoto_param(44=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccgoto_param(47=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_45(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_paramlist/7}).
 yeccgoto_paramlist(30, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_31(31, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_paramlist(32=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_43(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_query/7}).
 yeccgoto_query(0=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_3(_S, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_query(1=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_3(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_script/7}).
 yeccgoto_script(0, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_2(2, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_script(1=_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_80(_S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_sign/7}).
 yeccgoto_sign(28, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_29(29, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccgoto_stat/7}).
 yeccgoto_stat(0, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_1(1, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_stat(1, Cat, Ss, Stack, T, Ts, Tzr) ->

@@ -7,5 +7,4 @@
 %% =========================================================
 
 -callback halt( Halt::#halt_ok{} | #halt_error_task{} | #halt_error_workflow{},
-                {Mod::atom(),
-                Ref::pid()} ) -> ok.
+                {Mod::atom(), Ref::pid()} ) -> ok.

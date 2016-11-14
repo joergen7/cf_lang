@@ -71,7 +71,7 @@
 -type ctx()     :: {Rho   :: #{string() => [expr()]},                           % (17)
                     Mu    :: fun( ( app() ) -> fut() ),
                     Gamma :: #{string() => lam()},
-                    Omega :: #{{string(), pos_integer()} => [expr()]}}.
+                    Omega :: #{{string(), binary()} => [expr()]}}.
 
 %% =============================================================================
 %% Predicates
@@ -98,14 +98,17 @@ psing( {app, AppLine, C,                                                        
 when Pl ->
   psing( {app, AppLine, C, {lam, LamLine, LamName, {sign, Lo, T}, B}, Fa} );
 psing( {app, AppLine, C,                                                        % (64)
-             {lam, LamLine, LamName, {sign, Lo, [{param, {name, N, _}, _}|T]}, B},
+             {lam, LamLine, LamName, {sign, Lo, [{param, {name, N, _}, _}|T]},
+                   B},
              Fa} ) ->
   case maps:is_key( N, Fa ) of
     false -> throw( {AppLine, ?MODULE,
-                     "argument "++N++" is unbound in application of "++LamName} );
+                     "argument "++N++" is unbound in application of "
+                     ++LamName} );
     true  ->
       case length( maps:get( N, Fa ) ) of
-        1 -> psing( {app, AppLine, C, {lam, LamLine, LamName, {sign, Lo, T}, B}, Fa} );
+        1 -> psing( {app, AppLine, C, {lam, LamLine, LamName, {sign, Lo, T}, B},
+                          Fa} );
         _ -> false
       end
   end;
@@ -244,7 +247,8 @@ step( X={app, AppLine, C,
                         true  -> V1;                                            % (94)
                         false -> throw( {LamLine, ?MODULE,
                                          "signature mismatch when evaluating task "
-                                         ++LamName++": singleton output value expected for"
+                                         ++LamName
+                                         ++": singleton output value expected for"
                                          ++N} )
                       end
                   end
@@ -282,7 +286,8 @@ estep( X={app, _, _, {lam, _, _, {sign, _, []}, _}, _} ) -> [X];                
 estep( {app, AppLine, C,                                                        % (47)
              {lam, LamLine, LamName, {sign, Lo, [H={param, _, Pl}|T]}, B}, Fa} )
 when Pl ->
-  aug_lst( estep( {app, AppLine, C, {lam, LamLine, LamName, {sign, Lo, T}, B}, Fa} ), H );
+  aug_lst( estep( {app, AppLine, C, {lam, LamLine, LamName, {sign, Lo, T}, B},
+                        Fa} ), H );
 estep( X={app, AppLine, C,
                {lam, LamLine, LamName,
                      {sign, Lo, Li=[H={param, {name, N, _}, _Pl}|T]},

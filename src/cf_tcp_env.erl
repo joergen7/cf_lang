@@ -10,7 +10,9 @@
 -export( [submit/2] ).
 -export( [halt/2] ).
 
--define( PROTOCOL, cf_lang ).
+-include( "cf_lang.hrl" ).
+
+-define( PROTOCOL, <<"cf_lang">> ).
 -define( VSN, <<"0.1.0">> ).
 
 %%==========================================================
@@ -53,20 +55,26 @@ handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
   io:format( "Received data: ~p~n", [B] ),
   Workflow = decode( workflow, B ),
-  #{ tag := Tag, lang := cuneiform, content := Content } = Workflow,
+  #workflow{ tag=Tag, lang=cuneiform, content=Content } = Workflow,
   case cf_parse:string( binary_to_list( Content ) ) of
     {error, ErrorInfo} ->
-      Halt = cf_session:error_info_to_halt_error_workflow( ErrorInfo ),
+      Halt = cf_session:error_info_to_halt_error_workflow( Tag, ErrorInfo ),
       ok = gen_tcp:send( Socket, encode( Halt ) ),
       {stop, normal, StateData};
     {ok, {Query, Rho, Gamma}} ->
       M = {?MODULE, self()},
       case cf_session:start_link( M, M, Tag, {Query, Rho, Gamma} ) of
-        {error, Reason} -> error( Reason );
-        {ok, Session}   ->
-          {next_state, op, StateData#state_data{ session=Session }}
+        {error, Reason}  -> error( Reason );
+        {ok, SessionRef} ->
+          {next_state, op,
+                       StateData#state_data{ session={cf_session, SessionRef} }}
       end
   end;
+
+handle_info( {tcp, Socket, B}, op,
+             StateData=#state_data{ socket=Socket, session=Session } ) ->
+  Session:reply( decode( reply, B ) ),
+  {next_state, op, StateData};
 
 handle_info( {tcp_closed, Socket}, _, StateData=#state_data{ socket=Socket } ) ->
   {stop, normal, StateData};
@@ -148,7 +156,7 @@ encode( #halt_error_task{ tag      = Tag,
                    msg_type => halt_error_task,
                    data     => #{
                                  id       => R,
-                                 app_line => Line,
+                                 app_line => AppLine,
                                  lam_name => LamName,
                                  script   => Script,
                                  output   => Output
@@ -159,7 +167,7 @@ encode( #halt_error_task{ tag      = Tag,
 encode( #submit{ tag      = Tag,
                  id       = R,
                  app_line = AppLine,
-                 lam_line = LamLine,
+                 lam_name = LamName,
                  out_vars = OutVars,
                  in_vars  = InVars,
                  lang     = Lang,
@@ -177,7 +185,7 @@ encode( #submit{ tag      = Tag,
                                   out_vars => OutVars,
                                   in_vars  => InVars,
                                   lang     => Lang,
-                                  script   => list_to_binary( Script ),
+                                  script   => Script,
                                   arg_map  => ArgMap
                                 }
                  } ).
@@ -191,7 +199,7 @@ decode( workflow, B ) ->
      <<"vsn">>      := ?VSN,
      <<"tag">>      := Tag,
      <<"msg_type">> := <<"workflow">>,
-     <<"data">>     := #{ <<"lang">> := <<"cuneiform">>,
+     <<"data">>     := #{ <<"lang">>    := <<"cuneiform">>,
                           <<"content">> := Content
                         }
   } = jsone:decode( B ),
@@ -200,34 +208,32 @@ decode( workflow, B ) ->
 
 decode( reply, B ) ->
 
-  #{ <<"protocol">> := ?PROTOCOL,
-     <<"vsn">>      := ?VSN,
-     <<"tag">>      := Tag,
-     <<"msg_type">> := <<"reply_ok">>,
-     <<"data">>     := #{ <<"id">>         := R,
-                          <<"result_map">> := ResultMap
-                        }
-  } = jsone:decode( B ),
+  case jsone:decode( B ) of
 
-  #reply_ok{ tag=Tag, id=R, result_map=ResultMap};
+    #{ <<"protocol">> := ?PROTOCOL,
+       <<"vsn">>      := ?VSN,
+       <<"tag">>      := Tag,
+       <<"msg_type">> := <<"reply_ok">>,
+       <<"data">>     := #{ <<"id">>         := R,
+                            <<"result_map">> := ResultMap
+                          }
+     } -> #reply_ok{ tag=Tag, id=R, result_map=ResultMap };
 
-decode( reply, B ) ->
+    #{ <<"protocol">> := ?PROTOCOL,
+       <<"vsn">>      := ?VSN,
+       <<"tag">>      := Tag,
+       <<"msg_type">> := <<"reply_error">>,
+       <<"data">>     := #{ <<"id">>         := R,
+                            <<"output">>     := Output,
+                            <<"app_line">>   := AppLine,
+                            <<"lam_name">> := LamName,
+                            <<"script">>     := Script
+                          }
+    } -> #reply_error{ tag      = Tag,
+                       id       = R,
+                       app_line = AppLine,
+                       lam_name = LamName,
+                       script   = Script,
+                       output   = Output }
+  end.
 
-  #{ <<"protocol">> := ?PROTOCOL,
-     <<"vsn">>      := ?VSN,
-     <<"tag">>      := Tag,
-     <<"msg_type">> := <<"reply_error">>,
-     <<"data">>     := #{ <<"id">>         := R,
-                          <<"output">>     := Output,
-                          <<"app_line">>   := AppLine,
-                          <<"lam_name>>">> := LamName,
-                          <<"script">>     := Script
-                        }
-  } = jsone:decode( B ),
-
-  #reply_error{ tag      = Tag,
-                id       = R,
-                app_line = AppLine,
-                lam_name = LamName,
-                script   = Script,
-                output   = Output }.
