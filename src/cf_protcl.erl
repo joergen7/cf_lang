@@ -25,7 +25,7 @@
 
 -include( "cf_protcl.hrl" ).
 
--define( PROTOCOL, <<"cf_lang">> ).
+-define( PROTOCOL, <<"cf_protcl">> ).
 -define( VSN, <<"0.1.0">> ).
 
 
@@ -76,6 +76,7 @@ encode( #halt_etask{ tag      = Tag,
 
 
 encode( #submit{ tag      = Tag,
+	             suppl    = Suppl,
                  id       = R,
                  app_line = AppLine,
                  lam_name = LamName,
@@ -89,7 +90,8 @@ encode( #submit{ tag      = Tag,
                    vsn      => ?VSN,
                    tag      => Tag,
                    msg_type => submit,
-                   data     => #{ id       => R,
+                   data     => #{ suppl    => Suppl,
+                                  id       => R,
                                   app_line => AppLine,
                                   lam_name => LamName,
                                   out_vars => OutVars,
@@ -110,11 +112,12 @@ decode( workflow, B ) ->
      <<"tag">>      := Tag,
      <<"msg_type">> := <<"workflow">>,
      <<"data">>     := #{ <<"lang">>    := <<"cuneiform">>,
-                          <<"content">> := Content
+                          <<"content">> := Content,
+                          <<"suppl">>   := Suppl
                         }
   } = jsone:decode( B ),
 
-  #workflow{ tag=Tag, lang=cuneiform, content=Content };
+  #workflow{ tag=Tag, suppl=Suppl, lang=cuneiform, content=Content };
 
 decode( reply, B ) ->
 
