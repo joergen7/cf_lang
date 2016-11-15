@@ -23,6 +23,12 @@
 
 -export( [encode/1, decode/2] ).
 
+-include( "cf_protcl.hrl" ).
+
+-define( PROTOCOL, <<"cf_lang">> ).
+-define( VSN, <<"0.1.0">> ).
+
+
 encode( #halt_ok{ tag    = Tag,
                   result = Result } ) ->
 
