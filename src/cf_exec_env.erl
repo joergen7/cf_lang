@@ -21,7 +21,7 @@
 -module( cf_exec_env ).
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
--include( "cf_lang.hrl" ).
+-include( "cf_protcl.hrl" ).
 
 %% =========================================================
 %% Callback function declarations

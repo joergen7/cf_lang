@@ -21,11 +21,11 @@
 -module( cf_usr ).
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
--include( "cf_lang.hrl" ).
+-include( "cf_protcl.hrl" ).
 
 %% =========================================================
 %% Callback function declarations
 %% =========================================================
 
--callback halt( Halt::#halt_ok{} | #halt_error_task{} | #halt_error_workflow{},
+-callback halt( Halt::#halt_ok{} | #halt_etask{} | #halt_eworkflow{},
                 {Mod::atom(), Ref::pid()} ) -> ok.

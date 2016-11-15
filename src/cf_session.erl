@@ -23,12 +23,12 @@
 
 -behaviour( gen_fsm ).
 
--export( [start_link/4, reply/2, stop/1, error_info_to_halt_error_workflow/2] ).
+-export( [start_link/3, start_link/4, reply/2, stop/1] ).
 -export( [code_change/4, init/1, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
 -export( [busy/2, busy/3, saturated/2, saturated/3, zombie/2, zombie/3] ).
 
--include( "cf_lang.hrl" ).
+-include( "cf_protcl.hrl" ).
 -define( HASH_ALGO, sha256 ).
 
 %%==========================================================
@@ -41,6 +41,18 @@
 %% API functions
 %%==========================================================
 
+
+start_link( Usr, ExecEnv,
+            #workflow{ tag=Tag, lang=cuneiform, content=Content } ) ->
+
+  case cf_parse:string( binary_to_list( Content ) ) of
+    {error, ErrorInfo} ->
+      Halt = error_info_to_halt_eworkflow( Tag, ErrorInfo ),
+      {error, Halt};
+    {ok, {Query, Rho, Gamma}} ->
+      start_link( Usr, ExecEnv, Tag, {Query, Rho, Gamma} )
+  end.
+
 start_link( Usr, ExecEnv, Tag, {Query, Rho, Gamma} ) ->
   gen_fsm:start_link( ?MODULE, {Usr, ExecEnv, Tag, {Query, Rho, Gamma}}, [] ).
 
@@ -50,17 +62,6 @@ reply( Reply, {?MODULE, SessionRef} ) ->
 stop( {?MODULE, SessionRef} ) ->
   gen_fsm:stop( SessionRef ).
 
-
--spec error_info_to_halt_error_workflow( Tag, ErrorInfo ) ->
-  #halt_error_workflow{}
-when Tag       :: binary(),
-     ErrorInfo :: {pos_integer(), atom(), string()}.
-
-error_info_to_halt_error_workflow( Tag, {Line, Module, Reason} ) ->
-  #halt_error_workflow{ tag    = Tag,
-                        line   = Line,
-                        module = Module,
-                        reason = list_to_binary( Reason ) }.
 
 %%==========================================================
 %% Generic FSM callback functions
@@ -81,7 +82,7 @@ terminate( _Reason, _StateName, _StateData ) ->
 
 handle_event( Reply=#reply_error{ tag=Tag }, _StateName,
               StateData=#state_data{ usr=Usr, tag=Tag } ) ->
-  Usr:halt( reply_error_to_halt_error_task( Tag, Reply ) ),
+  Usr:halt( reply_error_to_halt_etask( Tag, Reply ) ),
   {next_state, zombie, StateData};
 
 handle_event( Reply=#reply_ok{ tag=Tag }, idle,
@@ -166,7 +167,7 @@ busy( {eval, {ok, Y}}, StateData=#state_data{ usr=Usr, tag=Tag } ) ->
   end;
 
 busy( {eval, {error, ErrorInfo}}, StateData=#state_data{ usr=Usr, tag=Tag } ) ->
-  Usr:halt( error_info_to_halt_error_workflow( Tag, ErrorInfo ) ),
+  Usr:halt( error_info_to_halt_eworkflow( Tag, ErrorInfo ) ),
   {next_state, zombie, StateData}.
 
 
@@ -199,7 +200,7 @@ saturated( {eval, {ok, Y}}, StateData=#state_data{ theta=Theta } ) ->
 
 saturated( {eval, {error, ErrorInfo}},
            StateData=#state_data{ usr=Usr, tag=Tag } ) ->
-  Usr:halt( error_info_to_halt_error_workflow( Tag, ErrorInfo ) ),
+  Usr:halt( error_info_to_halt_eworkflow( Tag, ErrorInfo ) ),
   {next_state, zombie, StateData}.
 
 
@@ -280,24 +281,24 @@ expr_lst_to_halt_ok( Tag, ExprLst ) ->
   #halt_ok{ tag=Tag, result=[list_to_binary( S ) ||{str, S} <- ExprLst] }.
 
 
--spec reply_error_to_halt_error_task( Tag, Reply ) -> #halt_error_task{}
+-spec reply_error_to_halt_etask( Tag, Reply ) -> #halt_etask{}
 when Tag   :: binary(),
      Reply :: #reply_error{}.
 
-reply_error_to_halt_error_task( Tag,
-                                #reply_error{ tag      = Tag,
-                                              id       = Id,
-                                              app_line = AppLine,
-                                              lam_name = LamName,
-                                              output   = Output,
-                                              script   = Script } ) ->
+reply_error_to_halt_etask( Tag,
+                           #reply_error{ tag      = Tag,
+                                         id       = Id,
+                                         app_line = AppLine,
+                                         lam_name = LamName,
+                                         output   = Output,
+                                         script   = Script } ) ->
 
-  #halt_error_task{ tag      = Tag,
-                    id       = Id,
-                    app_line = AppLine,
-                    lam_name = LamName,
-                    output   = Output,
-                    script   = Script }.
+  #halt_etask{ tag      = Tag,
+               id       = Id,
+               app_line = AppLine,
+               lam_name = LamName,
+               output   = Output,
+               script   = Script }.
 
 
 -spec reply_ok_to_omega( Reply::#reply_ok{} ) -> #{string() => [cf_sem:expr()]}.
@@ -310,3 +311,15 @@ reply_ok_to_omega( #reply_ok{ id=R, result_map=ResultMap } ) ->
       end,
 
   maps:fold( F, #{}, ResultMap ).
+
+
+-spec error_info_to_halt_eworkflow( Tag, ErrorInfo ) ->
+  #halt_eworkflow{}
+when Tag       :: binary(),
+     ErrorInfo :: {pos_integer(), atom(), string()}.
+
+error_info_to_halt_eworkflow( Tag, {Line, Module, Reason} ) ->
+  #halt_eworkflow{ tag    = Tag,
+                        line   = Line,
+                        module = Module,
+                        reason = list_to_binary( Reason ) }.

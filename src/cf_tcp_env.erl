@@ -32,7 +32,7 @@
 -export( [submit/2] ).
 -export( [halt/2] ).
 
--include( "cf_lang.hrl" ).
+-include( "cf_protcl.hrl" ).
 
 -define( PROTOCOL, <<"cf_lang">> ).
 -define( VSN, <<"0.1.0">> ).
@@ -77,21 +77,16 @@ handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
   io:format( "Received workflow msg: ~p~n", [B] ),
   Workflow = decode( workflow, B ),
-  #workflow{ tag=Tag, lang=cuneiform, content=Content } = Workflow,
-  case cf_parse:string( binary_to_list( Content ) ) of
-    {error, ErrorInfo} ->
-      Halt = cf_session:error_info_to_halt_error_workflow( Tag, ErrorInfo ),
-      io:format( "Sending halt_error_workflow msg: ~p~n", [encode( Halt )] ),
-      ok = gen_tcp:send( Socket, encode( Halt ) ),
-      {stop, normal, StateData};
-    {ok, {Query, Rho, Gamma}} ->
-      M = {?MODULE, self()},
-      case cf_session:start_link( M, M, Tag, {Query, Rho, Gamma} ) of
-        {error, Reason}  -> error( Reason );
-        {ok, SessionRef} ->
-          {next_state, op,
-                       StateData#state_data{ session={cf_session, SessionRef} }}
-      end
+  M = {?MODULE, self()},
+  case cf_session:start_link( M, M, Workflow ) of
+    {error, Halt=#halt_eworkflow{}} ->
+      io:format( "Sending halt_eworkflow msg: ~p~n", [encode( Halt )] ),
+      ok = gen_tcp:send( Socket, encode( Halt ) );
+    {error, Reason} ->
+      error( Reason );
+    {ok, SessionRef} ->
+      {next_state, op,
+                   StateData#state_data{ session={cf_session, SessionRef} }}
   end;
 
 handle_info( {tcp, Socket, B}, op,
@@ -113,13 +108,13 @@ op( Halt=#halt_ok{}, StateData=#state_data{ socket=Socket } ) ->
   gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
-op( Halt=#halt_error_workflow{}, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Sending halt_error_workflow msg: ~p~n", [Halt] ),
+op( Halt=#halt_eworkflow{}, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Sending halt_eworkflow msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
-op( Halt=#halt_error_task{}, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Sending halt_error_task msg: ~p~n", [Halt] ),
+op( Halt=#halt_etask{}, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Sending halt_etask msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
@@ -143,125 +138,4 @@ submit( Submit, {?MODULE, Ref} ) ->
 halt( Halt, {?MODULE, Ref} ) ->
   gen_fsm:send_event( Ref, Halt ).
 
-%%==========================================================
-%% Internal Functions
-%%==========================================================
-
-encode( #halt_ok{ tag    = Tag,
-                  result = Result } ) ->
-
-  jsone:encode( #{ protocol => ?PROTOCOL,
-                   vsn      => ?VSN,
-                   tag      => Tag,
-                   msg_type => halt_ok,
-                   data     => #{ result => Result }
-                 } );
-
-encode( #halt_error_workflow{ tag    = Tag,
-                              line   = Line,
-                              module = Module,
-                              reason = Reason} ) ->
-
-  jsone:encode( #{ protocol => ?PROTOCOL,
-                   vsn      => ?VSN,
-                   tag      => Tag,
-                   msg_type => halt_error_workflow,
-                   data     => #{ line   => Line,
-                                  module => Module,
-                                  reason => Reason
-                                }
-                 } );
-
-encode( #halt_error_task{ tag      = Tag,
-                          id       = R,
-                          app_line = AppLine,
-                          lam_name = LamName,
-                          script   = Script,
-                          output   = Output } ) ->
-
-  jsone:encode( #{ protocol => ?PROTOCOL,
-                   vsn      => ?VSN,
-                   tag      => Tag,
-                   msg_type => halt_error_task,
-                   data     => #{
-                                 id       => R,
-                                 app_line => AppLine,
-                                 lam_name => LamName,
-                                 script   => Script,
-                                 output   => Output
-                                }
-                 } );
-
-
-encode( #submit{ tag      = Tag,
-                 id       = R,
-                 app_line = AppLine,
-                 lam_name = LamName,
-                 out_vars = OutVars,
-                 in_vars  = InVars,
-                 lang     = Lang,
-                 script   = Script,
-                 arg_map  = ArgMap } ) ->
-
-  jsone:encode( #{ protocol => ?PROTOCOL,
-                   vsn      => ?VSN,
-                   tag      => Tag,
-                   msg_type => submit,
-                   data     => #{ id       => R,
-                                  app_line => AppLine,
-                                  lam_name => LamName,
-                                  out_vars => OutVars,
-                                  in_vars  => InVars,
-                                  lang     => Lang,
-                                  script   => Script,
-                                  arg_map  => ArgMap
-                                }
-                 } ).
-
-
-
-
-
-decode( workflow, B ) ->
-  #{ <<"protocol">> := ?PROTOCOL,
-     <<"vsn">>      := ?VSN,
-     <<"tag">>      := Tag,
-     <<"msg_type">> := <<"workflow">>,
-     <<"data">>     := #{ <<"lang">>    := <<"cuneiform">>,
-                          <<"content">> := Content
-                        }
-  } = jsone:decode( B ),
-
-  #workflow{ tag=Tag, lang=cuneiform, content=Content };
-
-decode( reply, B ) ->
-
-  case jsone:decode( B ) of
-
-    #{ <<"protocol">> := ?PROTOCOL,
-       <<"vsn">>      := ?VSN,
-       <<"tag">>      := Tag,
-       <<"msg_type">> := <<"reply_ok">>,
-       <<"data">>     := #{ <<"id">>         := R,
-                            <<"result_map">> := ResultMap
-                          }
-     } -> #reply_ok{ tag=Tag, id=R, result_map=ResultMap };
-
-    #{ <<"protocol">> := ?PROTOCOL,
-       <<"vsn">>      := ?VSN,
-       <<"tag">>      := Tag,
-       <<"msg_type">> := <<"reply_error">>,
-       <<"data">>     := #{ <<"id">>         := R,
-                            <<"output">>     := Output,
-                            <<"app_line">>   := AppLine,
-                            <<"lam_name">> := LamName,
-                            <<"script">>     := Script
-                          }
-    } -> #reply_error{ tag      = Tag,
-                       id       = R,
-                       app_line = AppLine,
-                       lam_name = LamName,
-                       script   = Script,
-                       output   = Output }
-  end.
 
