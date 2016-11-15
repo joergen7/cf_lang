@@ -24,7 +24,6 @@
 -export( [main/1] ).
 
 main( _Args ) ->
-  io:format( "starting server ...~n" ),
   application:start( cf_lang ),
   receive
   	_ -> ok

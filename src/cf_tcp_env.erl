@@ -75,12 +75,13 @@ init( Socket ) ->
 
 handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Received data: ~p~n", [B] ),
+  io:format( "Received workflow msg: ~p~n", [B] ),
   Workflow = decode( workflow, B ),
   #workflow{ tag=Tag, lang=cuneiform, content=Content } = Workflow,
   case cf_parse:string( binary_to_list( Content ) ) of
     {error, ErrorInfo} ->
       Halt = cf_session:error_info_to_halt_error_workflow( Tag, ErrorInfo ),
+      io:format( "Sending halt_error_workflow msg: ~p~n", [encode( Halt )] ),
       ok = gen_tcp:send( Socket, encode( Halt ) ),
       {stop, normal, StateData};
     {ok, {Query, Rho, Gamma}} ->
@@ -95,7 +96,7 @@ handle_info( {tcp, Socket, B}, preop,
 
 handle_info( {tcp, Socket, B}, op,
              StateData=#state_data{ socket=Socket, session=Session } ) ->
-  io:format( "Received data: ~p~n", [B] ),
+  io:format( "Received reply: ~p~n", [B] ),
   Session:reply( decode( reply, B ) ),
   {next_state, op, StateData};
 
@@ -108,18 +109,22 @@ handle_info( {'EXIT', _From, Reason}, _, StateData ) ->
 
 
 op( Halt=#halt_ok{}, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Sending halt_ok msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
 op( Halt=#halt_error_workflow{}, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Sending halt_error_workflow msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
 op( Halt=#halt_error_task{}, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Sending halt_error_task msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, encode( Halt ) ),
   {stop, normal, StateData};
 
 op( Submit=#submit{}, StateData=#state_data{ socket=Socket } ) ->
+  io:format( "Sending submit msg: ~p~n", [Submit] ),
   gen_tcp:send( Socket, encode( Submit ) ),
   {next_state, op, StateData}.
 
@@ -145,20 +150,18 @@ halt( Halt, {?MODULE, Ref} ) ->
 encode( #halt_ok{ tag    = Tag,
                   result = Result } ) ->
 
-  zlib:gzip(
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    tag      => Tag,
                    msg_type => halt_ok,
                    data     => #{ result => Result }
-                 } ) );
+                 } );
 
 encode( #halt_error_workflow{ tag    = Tag,
                               line   = Line,
                               module = Module,
                               reason = Reason} ) ->
 
-  zlib:gzip(
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    tag      => Tag,
@@ -167,7 +170,7 @@ encode( #halt_error_workflow{ tag    = Tag,
                                   module => Module,
                                   reason => Reason
                                 }
-                 } ) );
+                 } );
 
 encode( #halt_error_task{ tag      = Tag,
                           id       = R,
@@ -176,7 +179,6 @@ encode( #halt_error_task{ tag      = Tag,
                           script   = Script,
                           output   = Output } ) ->
 
-  zlib:gzip(
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    tag      => Tag,
@@ -188,7 +190,7 @@ encode( #halt_error_task{ tag      = Tag,
                                  script   => Script,
                                  output   => Output
                                 }
-                 } ) );
+                 } );
 
 
 encode( #submit{ tag      = Tag,
@@ -201,7 +203,6 @@ encode( #submit{ tag      = Tag,
                  script   = Script,
                  arg_map  = ArgMap } ) ->
 
-  zlib:gzip(
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    tag      => Tag,
@@ -215,7 +216,7 @@ encode( #submit{ tag      = Tag,
                                   script   => Script,
                                   arg_map  => ArgMap
                                 }
-                 } ) ).
+                 } ).
 
 
 
@@ -229,13 +230,13 @@ decode( workflow, B ) ->
      <<"data">>     := #{ <<"lang">>    := <<"cuneiform">>,
                           <<"content">> := Content
                         }
-  } = jsone:decode( zlib:gunzip( B ) ),
+  } = jsone:decode( B ),
 
   #workflow{ tag=Tag, lang=cuneiform, content=Content };
 
 decode( reply, B ) ->
 
-  case jsone:decode( zlib:gunzip( B ) ) of
+  case jsone:decode( B ) of
 
     #{ <<"protocol">> := ?PROTOCOL,
        <<"vsn">>      := ?VSN,
