@@ -125,11 +125,11 @@ decode( reply, B ) ->
     #{ <<"protocol">> := ?PROTOCOL,
        <<"vsn">>      := ?VSN,
        <<"msg_type">> := <<"reply_error">>,
-       <<"data">>     := #{ <<"id">>         := R,
-                            <<"output">>     := Output,
-                            <<"app_line">>   := AppLine,
+       <<"data">>     := #{ <<"id">>       := R,
+                            <<"output">>   := Output,
+                            <<"app_line">> := AppLine,
                             <<"lam_name">> := LamName,
-                            <<"script">>     := Script
+                            <<"script">>   := Script
                           }
     } -> #reply_error{ id       = R,
                        app_line = AppLine,

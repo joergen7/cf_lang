@@ -18,9 +18,9 @@
 
 -record( reply_ok, {id, result_map} ).
 -record( reply_error, {id, app_line, lam_name, script, output} ).
--record( workflow, {suppl, lang, content} ).
+-record( workflow, {lang, content, suppl} ).
 -record( halt_ok, {result} ).
 -record( halt_eworkflow, {line, module, reason} ).
 -record( halt_etask, {id, app_line, lam_name, script, output} ).
--record( submit, {suppl, id, app_line, lam_name, out_vars, in_vars, lang,
-                  script, arg_map} ).
+-record( submit, {id, app_line, lam_name, out_vars, in_vars, lang, script,
+                  arg_map, suppl} ).

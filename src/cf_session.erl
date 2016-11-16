@@ -106,7 +106,9 @@ handle_event( Reply=#reply_error{}, _StateName,
 handle_event( Reply=#reply_ok{}, idle,
               StateData=#state_data{ query=Query, theta=Theta } ) ->
   {Rho, Mu, Gamma, Omega} = Theta,
-  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
+  DeltaOmega = reply_ok_to_omega( Reply ),
+  Omega1 = maps:merge( DeltaOmega, Omega ),
+  Theta1 = {Rho, Mu, Gamma, Omega1},
   fire( Query, Theta1 ),
   {next_state, busy, StateData#state_data{ theta=Theta1 }};
 

@@ -72,12 +72,10 @@ init( Socket ) ->
 
 handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Received workflow msg: ~p~n", [B] ),
   Workflow = cf_protcl:decode( workflow, B ),
   M = {?MODULE, self()},
   case cf_session:start_link( M, M, Workflow ) of
     {error, Halt=#halt_eworkflow{}} ->
-      io:format( "Sending halt_eworkflow msg: ~p~n", [cf_protcl:encode( Halt )] ),
       ok = gen_tcp:send( Socket, cf_protcl:encode( Halt ) );
     {error, Reason} ->
       error( Reason );
@@ -88,12 +86,10 @@ handle_info( {tcp, Socket, B}, preop,
 
 handle_info( {tcp, Socket, B}, op,
              StateData=#state_data{ socket=Socket, session=Session } ) ->
-  io:format( "Received reply: ~p~n", [B] ),
   Session:reply( cf_protcl:decode( reply, B ) ),
   {next_state, op, StateData};
 
 handle_info( {tcp_closed, Socket}, _, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "TCP connection closed by other host.~n" ),
   {stop, normal, StateData};
 
 handle_info( {'EXIT', _From, Reason}, _, StateData ) ->
@@ -101,22 +97,18 @@ handle_info( {'EXIT', _From, Reason}, _, StateData ) ->
 
 
 op( Halt=#halt_ok{}, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Sending halt_ok msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, cf_protcl:encode( Halt ) ),
   {stop, normal, StateData};
 
 op( Halt=#halt_eworkflow{}, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Sending halt_eworkflow msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, cf_protcl:encode( Halt ) ),
   {stop, normal, StateData};
 
 op( Halt=#halt_etask{}, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Sending halt_etask msg: ~p~n", [Halt] ),
   gen_tcp:send( Socket, cf_protcl:encode( Halt ) ),
   {stop, normal, StateData};
 
 op( Submit=#submit{}, StateData=#state_data{ socket=Socket } ) ->
-  io:format( "Sending submit msg: ~p~n", [Submit] ),
   gen_tcp:send( Socket, cf_protcl:encode( Submit ) ),
   {next_state, op, StateData}.
 
