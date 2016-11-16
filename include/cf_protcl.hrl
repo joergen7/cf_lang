@@ -16,11 +16,11 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 
--record( reply_ok, {tag, id, result_map} ).
--record( reply_error, {tag, id, app_line, lam_name, script, output} ).
--record( workflow, {tag, suppl, lang, content} ).
--record( halt_ok, {tag, result} ).
--record( halt_eworkflow, {tag, line, module, reason} ).
--record( halt_etask, {tag, id, app_line, lam_name, script, output} ).
--record( submit, {tag, suppl, id, app_line, lam_name, out_vars, in_vars,
-                  lang, script, arg_map} ).
+-record( reply_ok, {id, result_map} ).
+-record( reply_error, {id, app_line, lam_name, script, output} ).
+-record( workflow, {suppl, lang, content} ).
+-record( halt_ok, {result} ).
+-record( halt_eworkflow, {line, module, reason} ).
+-record( halt_etask, {id, app_line, lam_name, script, output} ).
+-record( submit, {suppl, id, app_line, lam_name, out_vars, in_vars, lang,
+                  script, arg_map} ).

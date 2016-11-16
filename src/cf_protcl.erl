@@ -29,24 +29,20 @@
 -define( VSN, <<"0.1.0">> ).
 
 
-encode( #halt_ok{ tag    = Tag,
-                  result = Result } ) ->
+encode( #halt_ok{ result=Result } ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
-                   tag      => Tag,
                    msg_type => halt_ok,
                    data     => #{ result => Result }
                  } );
 
-encode( #halt_eworkflow{ tag    = Tag,
-                              line   = Line,
-                              module = Module,
-                              reason = Reason} ) ->
+encode( #halt_eworkflow{ line   = Line,
+                         module = Module,
+                         reason = Reason} ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
-                   tag      => Tag,
                    msg_type => halt_eworkflow,
                    data     => #{ line   => Line,
                                   module => Module,
@@ -54,8 +50,7 @@ encode( #halt_eworkflow{ tag    = Tag,
                                 }
                  } );
 
-encode( #halt_etask{ tag      = Tag,
-                     id       = R,
+encode( #halt_etask{ id       = R,
                      app_line = AppLine,
                      lam_name = LamName,
                      script   = Script,
@@ -63,7 +58,6 @@ encode( #halt_etask{ tag      = Tag,
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
-                   tag      => Tag,
                    msg_type => halt_etask,
                    data     => #{
                                  id       => R,
@@ -75,8 +69,7 @@ encode( #halt_etask{ tag      = Tag,
                  } );
 
 
-encode( #submit{ tag      = Tag,
-	             suppl    = Suppl,
+encode( #submit{ suppl    = Suppl,
                  id       = R,
                  app_line = AppLine,
                  lam_name = LamName,
@@ -88,7 +81,6 @@ encode( #submit{ tag      = Tag,
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
-                   tag      => Tag,
                    msg_type => submit,
                    data     => #{ suppl    => Suppl,
                                   id       => R,
@@ -109,7 +101,6 @@ encode( #submit{ tag      = Tag,
 decode( workflow, B ) ->
   #{ <<"protocol">> := ?PROTOCOL,
      <<"vsn">>      := ?VSN,
-     <<"tag">>      := Tag,
      <<"msg_type">> := <<"workflow">>,
      <<"data">>     := #{ <<"lang">>    := <<"cuneiform">>,
                           <<"content">> := Content,
@@ -117,7 +108,7 @@ decode( workflow, B ) ->
                         }
   } = jsone:decode( B ),
 
-  #workflow{ tag=Tag, suppl=Suppl, lang=cuneiform, content=Content };
+  #workflow{ suppl=Suppl, lang=cuneiform, content=Content };
 
 decode( reply, B ) ->
 
@@ -125,16 +116,14 @@ decode( reply, B ) ->
 
     #{ <<"protocol">> := ?PROTOCOL,
        <<"vsn">>      := ?VSN,
-       <<"tag">>      := Tag,
        <<"msg_type">> := <<"reply_ok">>,
        <<"data">>     := #{ <<"id">>         := R,
                             <<"result_map">> := ResultMap
                           }
-     } -> #reply_ok{ tag=Tag, id=R, result_map=ResultMap };
+     } -> #reply_ok{ id=R, result_map=ResultMap };
 
     #{ <<"protocol">> := ?PROTOCOL,
        <<"vsn">>      := ?VSN,
-       <<"tag">>      := Tag,
        <<"msg_type">> := <<"reply_error">>,
        <<"data">>     := #{ <<"id">>         := R,
                             <<"output">>     := Output,
@@ -142,8 +131,7 @@ decode( reply, B ) ->
                             <<"lam_name">> := LamName,
                             <<"script">>     := Script
                           }
-    } -> #reply_error{ tag      = Tag,
-                       id       = R,
+    } -> #reply_error{ id       = R,
                        app_line = AppLine,
                        lam_name = LamName,
                        script   = Script,

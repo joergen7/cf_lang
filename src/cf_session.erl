@@ -35,7 +35,7 @@
 %% Record definitions
 %%==========================================================
 
--record( state_data, {usr, exec_env, tag, query, theta, seen=sets:new()} ).
+-record( state_data, {usr, exec_env, suppl, query, theta, seen=sets:new()} ).
 
 %%==========================================================
 %% API functions
@@ -43,18 +43,18 @@
 
 
 start_link( Usr, ExecEnv,
-            #workflow{ tag=Tag, lang=cuneiform, content=Content } ) ->
+            #workflow{ suppl=Suppl, lang=cuneiform, content=Content } ) ->
 
   case cf_parse:string( binary_to_list( Content ) ) of
     {error, ErrorInfo} ->
-      Halt = error_info_to_halt_eworkflow( Tag, ErrorInfo ),
+      Halt = error_info_to_halt_eworkflow( ErrorInfo ),
       {error, Halt};
     {ok, {Query, Rho, Gamma}} ->
-      start_link( Usr, ExecEnv, Tag, {Query, Rho, Gamma} )
+      start_link( Usr, ExecEnv, Suppl, {Query, Rho, Gamma} )
   end.
 
-start_link( Usr, ExecEnv, Tag, {Query, Rho, Gamma} ) ->
-  gen_fsm:start_link( ?MODULE, {Usr, ExecEnv, Tag, {Query, Rho, Gamma}}, [] ).
+start_link( Usr, ExecEnv, Suppl, {Query, Rho, Gamma} ) ->
+  gen_fsm:start_link( ?MODULE, {Usr, ExecEnv, Suppl, {Query, Rho, Gamma}}, [] ).
 
 reply( Reply, {?MODULE, SessionRef} ) ->
   gen_fsm:send_all_state_event( SessionRef, Reply ).
@@ -80,35 +80,7 @@ handle_sync_event( _Event, _From, StateName, StateData ) ->
 terminate( _Reason, _StateName, _StateData ) ->
   ok.
 
-handle_event( Reply=#reply_error{ tag=Tag }, _StateName,
-              StateData=#state_data{ usr=Usr, tag=Tag } ) ->
-  Usr:halt( reply_error_to_halt_etask( Tag, Reply ) ),
-  {next_state, zombie, StateData};
-
-handle_event( Reply=#reply_ok{ tag=Tag }, idle,
-              StateData=#state_data{ query=Query, theta=Theta, tag=Tag } ) ->
-  {Rho, Mu, Gamma, Omega} = Theta,
-  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
-  fire( Query, Theta1 ),
-  {next_state, busy, StateData#state_data{ theta=Theta1 }};
-
-handle_event( Reply=#reply_ok{ tag=Tag }, busy,
-              StateData=#state_data{ theta=Theta, tag=Tag } ) ->
-  {Rho, Mu, Gamma, Omega} = Theta,
-  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
-  {next_state, saturated, StateData#state_data{ theta=Theta1 }};
-
-handle_event( Reply=#reply_ok{ tag=Tag }, saturated,
-              StateData=#state_data{ theta=Theta, tag=Tag } ) ->
-  {Rho, Mu, Gamma, Omega} = Theta,
-  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
-  {next_state, saturated, StateData#state_data{ theta=Theta1 }};
-
-handle_event( _Event, zombie, StateData ) ->
-  {next_state, zombie, StateData}.
-
-
-init( {Usr, ExecEnv, Tag, {Query, Rho, Gamma}} ) ->
+init( {Usr, ExecEnv, Suppl, {Query, Rho, Gamma}} ) ->
 
   % compose submit function mu
   Parent = self(),
@@ -122,9 +94,37 @@ init( {Usr, ExecEnv, Tag, {Query, Rho, Gamma}} ) ->
 
   {ok, busy, #state_data{ usr      = Usr,
                           exec_env = ExecEnv,
-                          tag      = Tag,
+                          suppl    = Suppl,
                           query    = Query,
                           theta    = Theta }}.
+
+handle_event( Reply=#reply_error{}, _StateName,
+              StateData=#state_data{ usr=Usr } ) ->
+  Usr:halt( reply_error_to_halt_etask( Reply ) ),
+  {next_state, zombie, StateData};
+
+handle_event( Reply=#reply_ok{}, idle,
+              StateData=#state_data{ query=Query, theta=Theta } ) ->
+  {Rho, Mu, Gamma, Omega} = Theta,
+  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
+  fire( Query, Theta1 ),
+  {next_state, busy, StateData#state_data{ theta=Theta1 }};
+
+handle_event( Reply=#reply_ok{}, busy,
+              StateData=#state_data{ theta=Theta } ) ->
+  {Rho, Mu, Gamma, Omega} = Theta,
+  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
+  {next_state, saturated, StateData#state_data{ theta=Theta1 }};
+
+handle_event( Reply=#reply_ok{}, saturated,
+              StateData=#state_data{ theta=Theta } ) ->
+  {Rho, Mu, Gamma, Omega} = Theta,
+  Theta1 = {Rho, Mu, Gamma, maps:merge( reply_ok_to_omega( Reply ), Omega )},
+  {next_state, saturated, StateData#state_data{ theta=Theta1 }};
+
+handle_event( _Event, zombie, StateData ) ->
+  {next_state, zombie, StateData}.
+
 
 
 
@@ -142,10 +142,10 @@ init( {Usr, ExecEnv, Tag, {Query, Rho, Gamma}} ) ->
 
 busy( {submit, App={app, _, _, {lam, _, LamName, {sign, Lo, _}, _}, _}},
       _From, StateData=#state_data{ exec_env = ExecEnv,
-                                    seen     = Seen,
-                                    tag      = Tag } ) ->
+                                    suppl    = Suppl,
+                                    seen     = Seen } ) ->
 
-  Submit = app_to_submit( Tag, App ),
+  Submit = app_to_submit( Suppl, App ),
   #submit{ id=Hash } = Submit,
 
   Seen1 = case sets:is_element( Hash, Seen ) of
@@ -157,17 +157,17 @@ busy( {submit, App={app, _, _, {lam, _, LamName, {sign, Lo, _}, _}, _}},
 
   {reply, {fut, LamName, Hash, Lo}, busy, StateData#state_data{ seen=Seen1 }}.
 
-busy( {eval, {ok, Y}}, StateData=#state_data{ usr=Usr, tag=Tag } ) ->
+busy( {eval, {ok, Y}}, StateData=#state_data{ usr=Usr } ) ->
   case cf_sem:pnormal( Y ) of
     true ->
-      Usr:halt( expr_lst_to_halt_ok( Tag, Y ) ),
+      Usr:halt( expr_lst_to_halt_ok( Y ) ),
       {next_state, zombie, StateData};
     false ->
       {next_state, idle, StateData#state_data{ query=Y }}
   end;
 
-busy( {eval, {error, ErrorInfo}}, StateData=#state_data{ usr=Usr, tag=Tag } ) ->
-  Usr:halt( error_info_to_halt_eworkflow( Tag, ErrorInfo ) ),
+busy( {eval, {error, ErrorInfo}}, StateData=#state_data{ usr=Usr } ) ->
+  Usr:halt( error_info_to_halt_eworkflow( ErrorInfo ) ),
   {next_state, zombie, StateData}.
 
 
@@ -178,10 +178,10 @@ busy( {eval, {error, ErrorInfo}}, StateData=#state_data{ usr=Usr, tag=Tag } ) ->
 
 saturated( {submit, App={app, _, _, {lam, _, LamName, {sign, Lo, _}, _}, _}},
            _From, StateData=#state_data{ exec_env = ExecEnv,
-                                         seen     = Seen,
-                                         tag      = Tag } ) ->
+                                         suppl    = Suppl,
+                                         seen     = Seen } ) ->
 
-  Submit = app_to_submit( Tag, App ),
+  Submit = app_to_submit( Suppl, App ),
   #submit{ id=Hash } = Submit,
 
   Seen1 = case sets:is_element( Hash, Seen ) of
@@ -199,8 +199,8 @@ saturated( {eval, {ok, Y}}, StateData=#state_data{ theta=Theta } ) ->
   {next_state, busy, StateData#state_data{ query=Y } };
 
 saturated( {eval, {error, ErrorInfo}},
-           StateData=#state_data{ usr=Usr, tag=Tag } ) ->
-  Usr:halt( error_info_to_halt_eworkflow( Tag, ErrorInfo ) ),
+           StateData=#state_data{ usr=Usr } ) ->
+  Usr:halt( error_info_to_halt_eworkflow( ErrorInfo ) ),
   {next_state, zombie, StateData}.
 
 
@@ -240,9 +240,9 @@ hash( {app, _, _, {lam, _, _, {sign, Lo, Li}, Body}, Fa} ) ->
   list_to_binary( io_lib:format( "~.16B", [X] ) ).
 
 
--spec app_to_submit( Tag::binary(), App::cf_sem:app() ) -> #submit{}.
+-spec app_to_submit( Suppl::_, App::cf_sem:app() ) -> #submit{}.
 
-app_to_submit( Tag, App={app, AppLine, _, Lam, Fa} ) ->
+app_to_submit( Suppl, App={app, AppLine, _, Lam, Fa} ) ->
 
   {lam, _, LamName, Sign, Body} = Lam,
   {sign, Lo, Li} = Sign,
@@ -262,7 +262,7 @@ app_to_submit( Tag, App={app, AppLine, _, Lam, Fa} ) ->
 
   R = hash( App ),
 
-  #submit{ tag      = Tag,
+  #submit{ suppl    = Suppl,
            id       = R,
            app_line = AppLine,
            lam_name = list_to_binary( LamName ),
@@ -273,28 +273,23 @@ app_to_submit( Tag, App={app, AppLine, _, Lam, Fa} ) ->
            arg_map  = ArgMap }.
 
 
--spec expr_lst_to_halt_ok( Tag, ExprLst ) -> #halt_ok{}
-when Tag     :: binary(),
-     ExprLst :: [cf_sem:expr()].
+-spec expr_lst_to_halt_ok( ExprLst ) -> #halt_ok{}
+when ExprLst :: [cf_sem:expr()].
 
-expr_lst_to_halt_ok( Tag, ExprLst ) ->
-  #halt_ok{ tag=Tag, result=[list_to_binary( S ) ||{str, S} <- ExprLst] }.
+expr_lst_to_halt_ok( ExprLst ) ->
+  #halt_ok{ result=[list_to_binary( S ) ||{str, S} <- ExprLst] }.
 
 
--spec reply_error_to_halt_etask( Tag, Reply ) -> #halt_etask{}
-when Tag   :: binary(),
-     Reply :: #reply_error{}.
+-spec reply_error_to_halt_etask( Reply ) -> #halt_etask{}
+when Reply :: #reply_error{}.
 
-reply_error_to_halt_etask( Tag,
-                           #reply_error{ tag      = Tag,
-                                         id       = Id,
+reply_error_to_halt_etask( #reply_error{ id       = Id,
                                          app_line = AppLine,
                                          lam_name = LamName,
                                          output   = Output,
                                          script   = Script } ) ->
 
-  #halt_etask{ tag      = Tag,
-               id       = Id,
+  #halt_etask{ id       = Id,
                app_line = AppLine,
                lam_name = LamName,
                output   = Output,
@@ -313,13 +308,11 @@ reply_ok_to_omega( #reply_ok{ id=R, result_map=ResultMap } ) ->
   maps:fold( F, #{}, ResultMap ).
 
 
--spec error_info_to_halt_eworkflow( Tag, ErrorInfo ) ->
+-spec error_info_to_halt_eworkflow( ErrorInfo ) ->
   #halt_eworkflow{}
-when Tag       :: binary(),
-     ErrorInfo :: {pos_integer(), atom(), string()}.
+when ErrorInfo :: {pos_integer(), atom(), string()}.
 
-error_info_to_halt_eworkflow( Tag, {Line, Module, Reason} ) ->
-  #halt_eworkflow{ tag    = Tag,
-                        line   = Line,
-                        module = Module,
-                        reason = list_to_binary( Reason ) }.
+error_info_to_halt_eworkflow( {Line, Module, Reason} ) ->
+  #halt_eworkflow{ line   = Line,
+                   module = Module,
+                   reason = list_to_binary( Reason ) }.
