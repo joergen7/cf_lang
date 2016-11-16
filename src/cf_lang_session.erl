@@ -18,7 +18,7 @@
 
 %% @author Jörgen Brandt <brandjoe@hu-berlin.de>
 
--module( cf_session ).
+-module( cf_lang_session ).
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -behaviour( gen_fsm ).

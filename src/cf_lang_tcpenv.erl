@@ -18,12 +18,12 @@
 
 %% @author Jörgen Brandt <brandjoe@hu-berlin.de>
 
--module( cf_tcp_env ).
+-module( cf_lang_tcpenv ).
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -behaviour( gen_fsm ).
 -behaviour( cf_usr ).
--behaviour( cf_exec_env ).
+-behaviour( cf_execenv ).
 
 -export( [start_link/1] ).
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
@@ -35,7 +35,7 @@
 -include( "cf_protcl.hrl" ).
 
 %%==========================================================
-%% API functions
+%% Record definitions
 %%==========================================================
 
 -record( state_data, { socket, session } ).
@@ -74,14 +74,14 @@ handle_info( {tcp, Socket, B}, preop,
              StateData=#state_data{ socket=Socket } ) ->
   Workflow = cf_protcl:decode( workflow, B ),
   M = {?MODULE, self()},
-  case cf_session:start_link( M, M, Workflow ) of
+  case cf_lang_session:start_link( M, M, Workflow ) of
     {error, Halt=#halt_eworkflow{}} ->
       ok = gen_tcp:send( Socket, cf_protcl:encode( Halt ) );
     {error, Reason} ->
       error( Reason );
     {ok, SessionRef} ->
       {next_state, op,
-                   StateData#state_data{ session={cf_session, SessionRef} }}
+                   StateData#state_data{ session={cf_lang_session, SessionRef} }}
   end;
 
 handle_info( {tcp, Socket, B}, op,

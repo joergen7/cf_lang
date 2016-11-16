@@ -18,7 +18,7 @@
 
 %% @author Jörgen Brandt <brandjoe@hu-berlin.de>
 
--module( cf_tcp_srv ).
+-module( cf_lang_tcpsrv ).
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -define( TCP_PORT, 17489 ).
@@ -55,7 +55,7 @@ listen_loop( ListenSocket ) ->
       end;
     {error, Reason}  -> error( Reason );
     {ok, Socket}     ->
-      {ok, Child} = cf_lang_sup:start_tcp_session( Socket ),
+      {ok, Child} = cf_lang_sup:start_tcpenv( Socket ),
       case gen_tcp:controlling_process( Socket, Child ) of
         {error, Reason} -> error( Reason );
         ok              -> listen_loop( ListenSocket )

@@ -18,7 +18,7 @@
 
 %% @author Jörgen Brandt <brandjoe@hu-berlin.de>
 
--module( cf_exec_env ).
+-module( cf_execenv ).
 -author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -include( "cf_protcl.hrl" ).

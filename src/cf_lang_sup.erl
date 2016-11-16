@@ -23,10 +23,8 @@
 
 -behaviour( supervisor ).
 
--export( [start_link/0, start_tcp_session/1, start_session/3] ).
+-export( [start_link/0, start_tcpenv/1, start_session/3] ).
 -export( [init/1] ).
-
--define( SERVER, ?MODULE ).
 
 %%====================================================================
 %% API functions
@@ -35,11 +33,11 @@
 start_link() ->
   supervisor:start_link( {local, ?SERVER}, ?MODULE, [] ).
 
-start_tcp_session( Socket ) ->
+start_tcpenv( Socket ) ->
   ChildSpec = #{
-                id      => {cf_tcp_env,
+                id      => {cf_lang_tcpenv,
                             erlang:unique_integer( [positive, monotonic] )},
-                start   => {cf_tcp_env, start_link, [Socket]},
+                start   => {cf_lang_tcpenv, start_link, [Socket]},
                 restart => temporary,
                 type    => worker
                },
@@ -47,9 +45,9 @@ start_tcp_session( Socket ) ->
 
 start_session( Query, Rho, Gamma ) ->
   ChildSpec = #{
-                id      => {cf_session,
+                id      => {cf_lang_session,
                             erlang:unique_integer( [positive, monotonic] )},
-                start   => {cf_session, start_link, [Query, Rho, Gamma]},
+                start   => {cf_lang_session, start_link, [Query, Rho, Gamma]},
                 restart => temporary,
                 type    => worker
                },
@@ -62,8 +60,8 @@ start_session( Query, Rho, Gamma ) ->
 init( [] ) ->
 
     TcpSrv = #{
-               id      => tcpsrv,
-               start   => {cf_tcp_srv, start_link, []},
+               id      => cf_lang_tcpsrv,
+               start   => {cf_lang_tcpsrv, start_link, []},
                restart => permanent,
                type    => worker
               },
