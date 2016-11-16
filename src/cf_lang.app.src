@@ -9,7 +9,7 @@
    ]},
   {env,[]},
   {modules, [cf_exec_env, cf_lang, cf_lang_app, cf_lang_sup, cf_parse, cf_scan,
-             cf_sem, cf_session, cf_tcp_env, cf_tcp_srv, cf_usr]},
+             cf_sem, cf_session, cf_tcp_env, cf_tcp_srv, cf_usr, cf_protcl]},
 
   {maintainers, []},
   {licenses, []},
