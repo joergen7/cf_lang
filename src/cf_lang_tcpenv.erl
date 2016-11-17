@@ -25,7 +25,7 @@
 -behaviour( cf_usr ).
 -behaviour( cf_execenv ).
 
--export( [start_link/1] ).
+-export( [start_link/1, stop/1] ).
 -export( [init/1, code_change/4, handle_event/3, handle_info/3,
           handle_sync_event/4, terminate/3] ).
 -export( [op/2] ).
@@ -47,6 +47,9 @@
 
 start_link( Socket ) ->
   gen_fsm:start_link( ?MODULE, Socket, [] ).
+
+stop( {?MODULE, Ref} ) ->
+  gen_fsm:stop( Ref ).
 
 %%==========================================================
 %% Generic FSM callback functions
