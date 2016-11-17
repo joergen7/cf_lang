@@ -28,6 +28,9 @@
           handle_sync_event/4, terminate/3] ).
 -export( [busy/2, busy/3, saturated/2, saturated/3, zombie/2, zombie/3] ).
 
+%% TODO: remove
+-export( [app_to_submit/2] ).
+
 -include( "cf_protcl.hrl" ).
 -define( HASH_ALGO, sha512 ).
 
@@ -238,7 +241,7 @@ fire( Query, Theta ) ->
 
 hash( {app, _, _, {lam, _, _, {sign, Lo, Li}, Body}, Fa} ) ->
   B = term_to_binary( {Lo, Li, Body, Fa} ),
-  <<X:256/big-unsigned-integer>> = crypto:hash( ?HASH_ALGO, B ),
+  <<X:512/big-unsigned-integer>> = crypto:hash( ?HASH_ALGO, B ),
   list_to_binary( io_lib:format( "~.16B", [X] ) ).
 
 

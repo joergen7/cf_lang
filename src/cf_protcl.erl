@@ -108,7 +108,7 @@ decode( workflow, B ) ->
                         }
   } = jsone:decode( B ),
 
-  #workflow{ suppl=Suppl, lang=cuneiform, content=Content };
+  #workflow{ lang=cuneiform, content=Content, suppl=Suppl };
 
 decode( reply, B ) ->
 
@@ -136,5 +136,40 @@ decode( reply, B ) ->
                        lam_name = LamName,
                        script   = Script,
                        output   = Output }
-  end.
+  end;
 
+decode( submit, B ) ->
+  #{ <<"protocol">> := ?PROTOCOL,
+     <<"vsn">>      := ?VSN,
+     <<"msg_type">> := <<"submit">>,
+     <<"data">>     := #{ <<"id">>       := Id,
+                          <<"app_line">> := AppLine,
+                          <<"lam_name">> := LamName,
+                          <<"out_vars">> := OutVars0,
+                          <<"in_vars">>  := InVars0,
+                          <<"lang">>     := Lang0,
+                          <<"script">>   := Script,
+                          <<"arg_map">>  := ArgMap,
+                          <<"suppl">>    := Suppl
+                        }
+  } = jsone:decode( B ),
+
+  F = fun( <<"is_file">>, P, Acc )  -> Acc#{ is_file => P };
+         ( <<"is_list">>, P, Acc )  -> Acc#{ is_list => P };
+         ( <<"name">>, N, Acc )              -> Acc#{ name => N }
+      end,
+
+  OutVars = [maps:fold( F, #{}, O ) || O <- OutVars0],
+  InVars  = [maps:fold( F, #{}, I ) || I <- InVars0],
+  Lang    = binary_to_atom( Lang0, utf8 ),
+
+  #submit{ id       = Id,
+           app_line = AppLine,
+           lam_name = LamName,
+           out_vars = OutVars,
+           in_vars  = InVars,
+           lang     = Lang,
+           script   = Script,
+           arg_map  = ArgMap,
+           suppl    = Suppl
+         }.
