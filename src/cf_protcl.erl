@@ -69,33 +69,59 @@ encode( #halt_etask{ id       = R,
                  } );
 
 
-encode( #submit{ suppl    = Suppl,
-                 id       = R,
+encode( #submit{ id       = R,
                  app_line = AppLine,
                  lam_name = LamName,
                  out_vars = OutVars,
                  in_vars  = InVars,
                  lang     = Lang,
                  script   = Script,
-                 arg_map  = ArgMap } ) ->
+                 arg_map  = ArgMap,
+                 suppl    = Suppl } ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    msg_type => submit,
-                   data     => #{ suppl    => Suppl,
-                                  id       => R,
+                   data     => #{ id       => R,
                                   app_line => AppLine,
                                   lam_name => LamName,
                                   out_vars => OutVars,
                                   in_vars  => InVars,
                                   lang     => Lang,
                                   script   => Script,
-                                  arg_map  => ArgMap
+                                  arg_map  => ArgMap,
+                                  suppl    => Suppl
+                                }
+                 } );
+
+
+encode( #reply_ok{ id = Id, result_map = ResultMap } ) ->
+
+  jsone:encode( #{ protocol => ?PROTOCOL,
+                   vsn      => ?VSN,
+                   msg_type => reply_ok,
+                   data     => #{ id         => Id,
+                                  result_map => ResultMap
+                                }
+                 } );
+
+encode( #reply_error{ id = Id,
+                      app_line = AppLine,
+                      lam_name = LamName,
+                      script   = Script,
+                      output   = Output
+                    } ) ->
+
+  jsone:encode( #{ protocol => ?PROTOCOL,
+                   vsn      => ?VSN,
+                   msg_type => reply_error,
+                   data     => #{ id       => Id,
+                                  app_line => AppLine,
+                                  lam_name => LamName,
+                                  script   => Script,
+                                  output   => Output
                                 }
                  } ).
-
-
-
 
 
 decode( workflow, B ) ->
