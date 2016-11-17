@@ -28,10 +28,8 @@
           handle_sync_event/4, terminate/3] ).
 -export( [busy/2, busy/3, saturated/2, saturated/3, zombie/2, zombie/3] ).
 
-%% TODO: remove
--export( [app_to_submit/2] ).
-
 -include( "cf_protcl.hrl" ).
+
 -define( HASH_ALGO, sha512 ).
 
 %%==========================================================
