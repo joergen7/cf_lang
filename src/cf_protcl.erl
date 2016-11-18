@@ -155,13 +155,20 @@ decode( reply, B ) ->
                             <<"output">>   := Output,
                             <<"app_line">> := AppLine,
                             <<"lam_name">> := LamName,
-                            <<"script">>   := Script
+                            <<"script">>   := Script0
                           }
-    } -> #reply_error{ id       = R,
-                       app_line = AppLine,
-                       lam_name = LamName,
-                       script   = Script,
-                       output   = Output }
+    } ->
+
+      Script = case Script0 of
+                 <<"undefined">> -> undefined;
+                 X               -> X
+               end,
+
+      #reply_error{ id       = R,
+                    app_line = AppLine,
+                    lam_name = LamName,
+                    script   = Script,
+                    output   = Output }
   end;
 
 decode( submit, B ) ->
