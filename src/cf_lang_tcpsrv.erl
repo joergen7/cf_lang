@@ -57,7 +57,7 @@ listen_loop( ListenSocket ) ->
     {ok, Socket}     ->
       {ok, Child} = cf_lang_sup:start_tcpenv( Socket ),
       case gen_tcp:controlling_process( Socket, Child ) of
-        {error, closed} -> {cf_lang_tcpenv, Child}:stop();
+        {error, closed} -> cf_lang_tcpenv:stop( {cf_lang_tcpenv, Child} );
         {error, Reason} -> error( Reason );
         ok              -> listen_loop( ListenSocket )
       end

@@ -17,10 +17,10 @@
 %% limitations under the License.
 
 -record( reply_ok, {id, result_map} ).
--record( reply_error, {id, app_line, lam_name, script, output} ).
+-record( reply_error, {id, app_line, lam_name, act_script, output} ).
 -record( workflow, {lang, content, suppl} ).
 -record( halt_ok, {result} ).
 -record( halt_eworkflow, {line, module, reason} ).
--record( halt_etask, {id, app_line, lam_name, script, output} ).
+-record( halt_etask, {id, app_line, lam_name, act_script, output} ).
 -record( submit, {id, app_line, lam_name, out_vars, in_vars, lang, script,
                   arg_map, suppl} ).

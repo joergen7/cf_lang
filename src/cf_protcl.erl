@@ -50,26 +50,26 @@ encode( #halt_eworkflow{ line   = Line,
                                 }
                  } );
 
-encode( #halt_etask{ id       = R,
-                     app_line = AppLine,
-                     lam_name = LamName,
-                     script   = Script,
-                     output   = Output } ) ->
+encode( #halt_etask{ id         = Id,
+                     app_line   = AppLine,
+                     lam_name   = LamName,
+                     act_script = ActScript,
+                     output     = Output } ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    msg_type => halt_etask,
                    data     => #{
-                                 id       => R,
-                                 app_line => AppLine,
-                                 lam_name => LamName,
-                                 script   => Script,
-                                 output   => Output
+                                 id         => Id,
+                                 app_line   => AppLine,
+                                 lam_name   => LamName,
+                                 act_script => ActScript,
+                                 output     => Output
                                 }
                  } );
 
 
-encode( #submit{ id       = R,
+encode( #submit{ id       = Id,
                  app_line = AppLine,
                  lam_name = LamName,
                  out_vars = OutVars,
@@ -82,7 +82,7 @@ encode( #submit{ id       = R,
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    msg_type => submit,
-                   data     => #{ id       => R,
+                   data     => #{ id       => Id,
                                   app_line => AppLine,
                                   lam_name => LamName,
                                   out_vars => OutVars,
@@ -105,21 +105,21 @@ encode( #reply_ok{ id = Id, result_map = ResultMap } ) ->
                                 }
                  } );
 
-encode( #reply_error{ id = Id,
-                      app_line = AppLine,
-                      lam_name = LamName,
-                      script   = Script,
-                      output   = Output
+encode( #reply_error{ id         = Id,
+                      app_line   = AppLine,
+                      lam_name   = LamName,
+                      act_script = Script,
+                      output     = Output
                     } ) ->
 
   jsone:encode( #{ protocol => ?PROTOCOL,
                    vsn      => ?VSN,
                    msg_type => reply_error,
-                   data     => #{ id       => Id,
-                                  app_line => AppLine,
-                                  lam_name => LamName,
-                                  script   => Script,
-                                  output   => Output
+                   data     => #{ id         => Id,
+                                  app_line   => AppLine,
+                                  lam_name   => LamName,
+                                  act_script => Script,
+                                  output     => Output
                                 }
                  } ).
 
@@ -151,11 +151,11 @@ decode( reply, B ) ->
     #{ <<"protocol">> := ?PROTOCOL,
        <<"vsn">>      := ?VSN,
        <<"msg_type">> := <<"reply_error">>,
-       <<"data">>     := #{ <<"id">>       := R,
-                            <<"output">>   := Output,
-                            <<"app_line">> := AppLine,
-                            <<"lam_name">> := LamName,
-                            <<"script">>   := Script0
+       <<"data">>     := #{ <<"id">>         := R,
+                            <<"output">>     := Output,
+                            <<"app_line">>   := AppLine,
+                            <<"lam_name">>   := LamName,
+                            <<"act_script">> := Script0
                           }
     } ->
 
@@ -164,11 +164,11 @@ decode( reply, B ) ->
                  X               -> X
                end,
 
-      #reply_error{ id       = R,
-                    app_line = AppLine,
-                    lam_name = LamName,
-                    script   = Script,
-                    output   = Output }
+      #reply_error{ id         = R,
+                    app_line   = AppLine,
+                    lam_name   = LamName,
+                    act_script = Script,
+                    output     = Output }
   end;
 
 decode( submit, B ) ->

@@ -286,17 +286,17 @@ expr_lst_to_halt_ok( ExprLst ) ->
 -spec reply_error_to_halt_etask( Reply ) -> #halt_etask{}
 when Reply :: #reply_error{}.
 
-reply_error_to_halt_etask( #reply_error{ id       = Id,
-                                         app_line = AppLine,
-                                         lam_name = LamName,
-                                         output   = Output,
-                                         script   = Script } ) ->
+reply_error_to_halt_etask( #reply_error{ id         = Id,
+                                         app_line   = AppLine,
+                                         lam_name   = LamName,
+                                         output     = Output,
+                                         act_script = ActScript } ) ->
 
-  #halt_etask{ id       = Id,
-               app_line = AppLine,
-               lam_name = LamName,
-               output   = Output,
-               script   = Script }.
+  #halt_etask{ id         = Id,
+               app_line   = AppLine,
+               lam_name   = LamName,
+               output     = Output,
+               act_script = ActScript }.
 
 
 -spec reply_ok_to_omega( Reply::#reply_ok{} ) -> #{string() => [cf_sem:expr()]}.
