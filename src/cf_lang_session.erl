@@ -190,7 +190,7 @@ saturated( {submit, App={app, _, _, {lam, _, LamName, {sign, Lo, _}, _}, _}},
   Seen1 = case sets:is_element( Hash, Seen ) of
             true  -> Seen;
             false ->
-              ExecEnv:submit( Hash, Submit ),
+              ExecEnv:submit( Submit ),
               sets:add_element( Hash, Seen )
           end,
 
