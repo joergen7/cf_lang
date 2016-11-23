@@ -16,10 +16,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 
-%% @author Jörgen Brandt <brandjoe@hu-berlin.de>
+%% @author Jorgen Brandt <brandjoe@hu-berlin.de>
 
 -module( cf_lang_tcpsrv ).
--author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
+-author( "Jorgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -define( TCP_PORT, 17489 ).
 -define( LISTEN_OPT, [binary, {packet, 4}, {reuseaddr, true}, {active, true}] ).

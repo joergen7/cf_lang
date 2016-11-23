@@ -2,7 +2,7 @@
 -export([parse/1, parse_and_scan/1, format_error/1]).
 -file("/home/jorgen/git/cf_lang/_build/default/lib/cf_lang/src/cf_parse.yrl", 115).
 
--author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
+-author( "Jorgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -export( [string/1, file/1] ).
 

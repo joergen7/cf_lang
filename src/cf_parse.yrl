@@ -16,7 +16,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 
-%% @author Jörgen Brandt <brandjoe@hu-berlin.de>
+%% @author Jorgen Brandt <brandjoe@hu-berlin.de>
 
 
 %% =============================================================================
@@ -114,7 +114,7 @@ namelist     -> name namelist : ['$1'|'$2'].
 
 Erlang code.
 
--author( "Jörgen Brandt <brandjoe@hu-berlin.de>" ).
+-author( "Jorgen Brandt <brandjoe@hu-berlin.de>" ).
 
 -export( [string/1, file/1] ).
 
