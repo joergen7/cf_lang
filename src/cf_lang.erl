@@ -21,10 +21,14 @@
 -module( cf_lang ).
 -author( "Jorgen Brandt <brandjoe@hu-berlin.de>" ).
 
--export( [main/1] ).
+-export( [main/1, start/0] ).
 
 main( _Args ) ->
   application:start( cf_lang ),
   receive
   	_ -> ok
   end.
+
+
+start() ->
+  application:start( cf_lang ).
