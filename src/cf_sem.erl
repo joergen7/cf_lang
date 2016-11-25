@@ -122,13 +122,11 @@ pen( X )when is_list( X ) -> lists:all( fun pen/1, X );                         
 pen( {str, _S} )          -> true;                                              % (68)
 pen( {cnd, _, _Xc, Xt, Xe} ) when length( Xt ) =:= 1, length( Xe ) =:= 1 ->     % (69)
   pen( Xt ) andalso pen( Xe );
+pen( X={app, _, 1, {lam, _, _, {sign, [{param, _, Pl}|_], _Li}, _B}, _Fb} ) ->
+  ( not Pl ) andalso psing( X );
 pen( X={app, _, C, {lam, _, _, {sign, Lo, _Li}, _B}, _Fb} ) ->                  % (70)
-  case psing( X ) of
-    false -> false;
-    true ->
-      {param, _, Pl} = lists:nth( C, Lo ),
-      not Pl
-  end;
+  {param, _, Pl} = lists:nth( C, Lo ),
+  ( not Pl ) andalso psing( X );
 pen( {select, _, C, {fut, _, _R, Lo}} ) ->                                      % (71)
   {param, _, Pl} = lists:nth( C, Lo ),
   not Pl;
@@ -170,13 +168,13 @@ eval( X, Theta ) ->
 
 
 
--spec step( X, Theta ) -> #{string() => [expr()]} | [expr()]                    % (42)
-when X     :: #{string() => [expr()]} | [expr()] | expr(),
-     Theta :: ctx().
-
 % Argument map
-step( Fa, Theta ) when is_map( Fa ) ->                                          % (23,24)
-  maps:map( fun( _N, X ) -> step( X, Theta ) end, Fa );
+step_argmap( Fa, Theta ) when is_map( Fa ) ->                                   % (23,24)
+  maps:map( fun( _N, X ) -> step( X, Theta ) end, Fa ).
+
+-spec step( X, Theta ) -> [expr()]                                              % (42)
+when X     :: [expr()] | expr(),
+     Theta :: ctx().
 
 % Expression List
 step( X, Theta ) when is_list( X ) ->                                           % (25,26)
@@ -193,6 +191,10 @@ step( {var, Line, N}, {Rho, _Mu, _Gamma, _Omega} ) ->                           
   end;
 
 % Future Channel Selection
+step( S={select, _, 1, {fut, _, R, [{param, {name, N, _}, _}|_]}},
+      {_Rho, _Mu, _Gamma, Omega} ) ->
+  maps:get( {N, R}, Omega, [S] );
+
 step( S={select, _, C, {fut, _, R, Lo}}, {_Rho, _Mu, _Gamma, Omega} ) ->        % (29,30)
   {param, {name, N, _}, _} = lists:nth( C, Lo ),
   maps:get( {N, R}, Omega, [S] );
@@ -217,17 +219,17 @@ step( X={app, AppLine, C,
               Fa},
       Theta={_Rho, Mu, Gamma, Omega} ) ->
   case psing( X ) of
-    false -> enum( [{app, AppLine, C, Lambda, step( Fa, Theta )}] );            % (89)
+    false -> enum( [{app, AppLine, C, Lambda, step_argmap( Fa, Theta )}] );     % (89)
     true  ->
       case B of
         {forbody, _L, _Z} ->
           case pnormal( Fa ) of
-            false -> [{app, AppLine, C, Lambda, step( Fa, Theta )}];            % (90)
+            false -> [{app, AppLine, C, Lambda, step_argmap( Fa, Theta )}];     % (90)
             true  -> [{select, AppLine, C, apply( Mu, [X] )}]                   % (91)
           end;
         {natbody, Fb} ->
           case pindep( Fa ) of
-            false -> [{app, AppLine, C, Lambda, step( Fa, Theta )}];            % (92)
+            false -> [{app, AppLine, C, Lambda, step_argmap( Fa, Theta )}];     % (92)
             true  ->
               {param, {name, N, _}, Pl} = lists:nth( C, Lo ),
               case maps:is_key( N, Fb ) of
@@ -281,6 +283,7 @@ when A :: app() | [app()].
 
 estep( A ) when is_list( A ) ->                                                 % (44,45)
   lists:flatmap( fun( B ) -> estep( B ) end, A );
+
 estep( X={app, _, _, {lam, _, _, {sign, _, []}, _}, _} ) -> [X];                % (46)
   
 estep( {app, AppLine, C,                                                        % (47)
@@ -350,6 +353,31 @@ aug( {app, AppLine, C, {lam, LamLine, LamName, {sign, Lo, Li}, B}, Fa},         
 -spec corr( Lc, F ) -> [#{string() => [expr()]}]
 when Lc :: [name()],
      F  :: #{string() => [expr()]}.
+
+%%%%%%%% Optimization: zipwith %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                                                               %
+corr( [{name, N1, _}, {name, N2, _}], F ) ->                                   %
+                                                                               %
+  Combine = fun( A, B ) ->                                                     %
+              F#{ N1 => [A], N2 => [B] }                                       %
+            end,                                                               %
+                                                                               %
+  #{ N1 := V1, N2 := V2 } = F,                                                 %
+                                                                               %
+  lists:zipwith( Combine, V1, V2 );                                            %
+                                                                               %
+corr( [{name, N1, _}, {name, N2, _}, {name, N3, _}], F ) ->                    %
+                                                                               %
+  Combine = fun( A, B, C ) ->                                                  %
+              F#{ N1 => [A], N2 => [B], N3 => [C] }                            %
+            end,                                                               %
+                                                                               %
+  #{ N1 := V1, N2 := V2, N3 := V3 } = F,                                       %
+                                                                               %
+  lists:zipwith3( Combine, V1, V2, V3 );                                       %
+                                                                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 corr( Lc=[{name, N, _}|_], F ) ->
   case maps:get( N, F ) of
@@ -540,7 +568,7 @@ enum_without_app_does_nothing_test() ->
   B = {forbody, bash, "shalala"},
   Lam = {lam, 1, "f", S, B},
   App = {app, 2, 1, Lam, #{}},
-  ?assertEqual( [App], enum( App ) ).
+  ?assertEqual( [App], enum( [App] ) ).
 
 enum_empty_input_param_creates_single_instance_test() ->
   Li = [],
